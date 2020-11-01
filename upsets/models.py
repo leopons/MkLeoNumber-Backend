@@ -2,14 +2,14 @@ from django.db import models
 
 
 class Player(models.Model):
-    id = models.CharField(max_length=200, primary_key=True)
-    tag = models.CharField(max_length=200)
+    id = models.CharField(max_length=1000, primary_key=True)
+    tag = models.CharField(max_length=1000)
 
 
 class Tournament(models.Model):
-    id = models.CharField(max_length=200, primary_key=True)
+    id = models.CharField(max_length=1000, primary_key=True)
     start_date = models.DateField()
-    name = models.CharField(max_length=200)
+    name = models.CharField(max_length=1000)
 
 
 class Set(models.Model):
@@ -21,5 +21,5 @@ class Set(models.Model):
         Player, on_delete=models.CASCADE, related_name='looser')
     winner_score = models.IntegerField()
     looser_score = models.IntegerField()
-    round_name = models.CharField(max_length=200)
+    round_name = models.CharField(max_length=1000)
     best_of = models.IntegerField(null=True, blank=True)
