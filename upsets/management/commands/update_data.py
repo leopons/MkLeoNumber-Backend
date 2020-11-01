@@ -1,8 +1,9 @@
 from django.core.management.base import BaseCommand
 from upsets.lib.theplayerdatabase import SqliteArchiveReader
+from utils.decorators import log_exceptions
 # LOGGING
 import logging
-logger = logging.getLogger('cryptonavia.data_processing')
+logger = logging.getLogger('data_processing')
 
 
 class Command(BaseCommand):
@@ -14,6 +15,7 @@ class Command(BaseCommand):
             type=str,
             help='Path of the db sqlite file to read')
 
+    @log_exceptions(logger)
     def handle(self, *args, **options):
         path = options['path']
         reader = SqliteArchiveReader(path)

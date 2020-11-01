@@ -2,6 +2,9 @@ from datetime import datetime
 import ast
 import sqlite3
 from upsets.models import Tournament, Player, Set
+# LOGGING
+import logging
+logger = logging.getLogger('data_processing')
 
 
 class SqliteArchiveReader:
@@ -46,13 +49,18 @@ class SqliteArchiveReader:
                 player.tag = row[1]
                 player.save()
                 if created:
-                    print('Successfully created new player with id %s'
-                          % row[0])
+                    logger.info(
+                        'Successfully created new player with id %s'
+                        % row[0])
                 else:
-                    print('Successfully updated existing player with id %s'
-                          % row[0])
+                    logger.info(
+                        'Successfully updated existing player with id %s'
+                        % row[0])
             except Exception as ex:
-                print(ex)
+                template = "An exception of type {0} occurred during " \
+                    + "handling of player with id {1}. Arguments:\n{2!r}"
+                message = template.format(type(ex).__name__, row[0], ex.args)
+                logger.warning(message)
 
     def update_tournaments(self):
         """Query all rows in the tournament_info table and save them in our DB
@@ -69,13 +77,18 @@ class SqliteArchiveReader:
                 tournament.start_date = datetime.fromtimestamp(row[2]).date()
                 tournament.save()
                 if created:
-                    print('Successfully created new tournament with id %s'
-                          % row[0])
+                    logger.info(
+                        'Successfully created new tournament with id %s'
+                        % row[0])
                 else:
-                    print('Successfully updated existing tournament with id %s'
-                          % row[0])
+                    logger.info(
+                        'Successfully updated existing tournament with id %s'
+                        % row[0])
             except Exception as ex:
-                print(ex)
+                template = "An exception of type {0} occurred during " \
+                    + "handling of tournament with id {1}. Arguments:\n{2!r}"
+                message = template.format(type(ex).__name__, row[0], ex.args)
+                logger.warning(message)
 
     def update_sets(self):
         """Query all rows in the sets table and save them in our DB
@@ -123,13 +136,19 @@ class SqliteArchiveReader:
                     set.winner_score = row[6]
                     set.looser_score = row[5]
                 else:
-                    raise Exception('winner_id does not match p1_id or p2_id')
+                    logger.warning(
+                        'winner_id does not match p1_id or p2_id on set %s'
+                        % row[0])
+                    break
                 set.round_name = ast.literal_eval(row[7])[-1]
                 set.best_of = row[8]
                 set.save()
-                print('Successfully created new set with id %s' % row[0])
+                logger.info('Successfully created new set with id %s' % row[0])
             except Exception as ex:
-                print(ex)
+                template = "An exception of type {0} occurred during " \
+                    + "handling of set with id {1}. Arguments:\n{2!r}"
+                message = template.format(type(ex).__name__, row[0], ex.args)
+                logger.warning(message)
 
     def update_all_data(self):
         """Query the db file and update all the data in our db

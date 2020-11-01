@@ -93,6 +93,90 @@ USE_L10N = True
 USE_TZ = True
 
 
+# Logging
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': ('[%(asctime)s] [%(process)d] [%(levelname)s] ' +
+                       '[%(name)s] pathname=%(pathname)s lineno=%(lineno)s ' +
+                       'funcname=%(funcName)s %(message)s'),
+            'datefmt': '%Y-%m-%d %H:%M:%S %z'
+        },
+        'simple': {
+            'format': '	%(name)s %(asctime)s %(levelname)-8s %(message)s'
+        },
+        'console_color': {
+            '()': 'colorlog.ColoredFormatter',
+            'format': ('%(log_color)s%(name)s %(asctime)s %(levelname)-8s %(message)s'),
+            'datefmt': '%Y-%m-%d %H:%M:%S',
+            'log_colors': {
+                'DEBUG':    'bold_black',
+                'INFO':     'white',
+                'WARNING':  'yellow',
+                'ERROR':    'red',
+                'CRITICAL': 'bold_red',
+            }
+        }
+    },
+    'filters': {
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue',
+        },
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse',
+        },
+    },
+    'handlers': {
+        'prod_console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+            'filters': ['require_debug_false']
+        },
+        'debug_console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'console_color',
+            'filters': ['require_debug_true']
+        },
+        'mail_admins': {
+            'level': 'ERROR',
+            'class': 'django.utils.log.AdminEmailHandler',
+            'filters': ['require_debug_false'],
+            'formatter': 'verbose'
+        }
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['prod_console', 'debug_console'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+        'django.template': {
+            'handlers': ['prod_console', 'debug_console'],
+            'level': 'DEBUG',
+            'propagate': False
+        },
+        'django.db.backends': {
+            'handlers': ['prod_console', 'debug_console'],
+            'level': 'DEBUG',
+            'propagate': False
+        },
+        'django.request': {
+            'handlers': ['mail_admins', 'debug_console', 'prod_console'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        'data_processing': {
+            'handlers': ['mail_admins', 'debug_console', 'prod_console'],
+            'level': 'DEBUG'
+        }
+    }
+}
+
+
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
