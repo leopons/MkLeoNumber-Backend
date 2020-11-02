@@ -24,3 +24,23 @@ class Set(models.Model):
     looser_score = models.IntegerField(null=True, blank=True)
     round_name = models.CharField(max_length=1000, null=True, blank=True)
     best_of = models.IntegerField(null=True, blank=True)
+
+
+class UpsetTreeNode(models.Model):
+    '''
+    Given a target player, say MKLeo, we want to create a tree structure to get
+    easily the shortest upset path for any player, to the target player.
+    The root node represents MKLeo, the first level of child nodes the players
+    who have beaten him, the second level the ones that have beaten the first
+    level players, etc.
+    This structure won't allow to determine the path between any couple of
+    players, but in the case of a fixed target player it makes the processing
+    simpler but mainly faster, for quick enduser results.
+    '''
+    player = models.OneToOneField(
+        Player, on_delete=models.CASCADE, primary_key=True)
+    parent = models.ForeignKey(
+        'self', on_delete=models.CASCADE, null=True, blank=True)
+    upset = models.ForeignKey(
+        Set, on_delete=models.CASCADE, null=True, blank=True)
+    node_depth = models.IntegerField()
