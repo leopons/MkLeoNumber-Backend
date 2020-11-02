@@ -1,5 +1,5 @@
-from datetime import datetime
 from upsets.models import Set, UpsetTreeNode
+from utils.decorators import time_it
 # LOGGING
 import logging
 logger = logging.getLogger('data_processing')
@@ -31,6 +31,7 @@ class UpsetTreeManager:
     def __init__(self, root_player_id):
         self._root_player_id = root_player_id
 
+    @time_it(logger)
     def create_from_scratch(self):
         """Clean existing and create the upset tree from scratch
         """
@@ -40,36 +41,48 @@ class UpsetTreeManager:
 
         cont = True
         current_depth = 0
+        target_players_ids = [self._root_player_id]
+        seen_players_ids = [self._root_player_id]
 
         while cont:
-            target_players = [
-                x.player for x in
-                UpsetTreeNode.objects.filter(node_depth=current_depth)]
-            seen_players = [x.player for x in UpsetTreeNode.objects.all()]
-            upsets = Set.objects.all() \
-                                .exclude(winner__in=seen_players) \
-                                .filter(looser__in=target_players) \
-                                .order_by('winner_id',
-                                          '-tournament__start_date') \
-                                .distinct('winner_id')
+            logger.info(
+                'Processing Upset Tree layer #%s...' % (current_depth+1))
+            upsets = Set.objects \
+                .all() \
+                .exclude(winner_id__in=seen_players_ids) \
+                .filter(looser_id__in=target_players_ids) \
+                .order_by('winner_id', '-tournament__start_date') \
+                .distinct('winner_id') \
+                .select_related('looser__upsettreenode')
             # .distinct('col_name') works only on postgres and select the
             # first row given the order_by placed before (see django doc)
-            # Here, we keep the most recent upset of all the possible ones
+            # Here, we keep the most recent upset of all the possible ones.
+            # .select_related to pretetch the upset nodes needed later
 
             if upsets:
                 current_depth += 1
                 to_bulk_create = []
+                players_ids = []
                 for upset in upsets:
                     elt = UpsetTreeNode(
-                        player=upset.winner,
+                        # directly use winner_id to avoid fetching the player
+                        # object related to the upset
+                        player_id=upset.winner_id,
+                        # We prefetched the upsettreenode of the looser
                         parent=upset.looser.upsettreenode,
                         upset=upset,
                         node_depth=current_depth)
                     to_bulk_create.append(elt)
+                    players_ids.append(upset.winner_id)
+
+                seen_players_ids += players_ids
+                target_players_ids = players_ids
                 UpsetTreeNode.objects.bulk_create(to_bulk_create)
+                logger.info(
+                    'Processed %s Players in layer #%s'
+                    % (len(to_bulk_create), current_depth))
             else:
                 cont = False
-
-            # pistes d'ameliorations :
-            # prefect related upset tree node
-            # seen player and target players store differently
+                logger.info(
+                    'No players in layer #%s, the tree is now completed.'
+                    % current_depth)

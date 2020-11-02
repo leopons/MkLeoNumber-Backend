@@ -11,6 +11,11 @@ class Tournament(models.Model):
     start_date = models.DateField(null=True, blank=True)
     name = models.CharField(max_length=1000)
 
+    class Meta:
+        indexes = [
+            models.Index(fields=['-start_date']),
+        ]
+
 
 class Set(models.Model):
     original_id = models.CharField(max_length=1000)
