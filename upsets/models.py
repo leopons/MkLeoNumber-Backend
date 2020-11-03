@@ -59,17 +59,3 @@ class UpsetTreeNode(models.Model):
             return [self]
         else:
             return [self] + self.parent.get_root_path()
-
-    def __str__(self):
-        if self.upset is None:
-            return 'ROOT'
-        else:
-            return ("%s %s - %s %s @ %s %s - %s" % (
-                self.upset.winner.tag,
-                self.upset.winner_score,
-                self.upset.looser_score,
-                self.upset.looser.tag,
-                self.upset.tournament.name,
-                self.upset.round_name,
-                self.upset.tournament.start_date
-            ))
