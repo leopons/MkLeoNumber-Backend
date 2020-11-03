@@ -1,5 +1,6 @@
 from upsets.models import Set, UpsetTreeNode
 from utils.decorators import time_it
+from django.db.models import Q
 # LOGGING
 import logging
 logger = logging.getLogger('data_processing')
@@ -51,6 +52,7 @@ class UpsetTreeManager:
                 .all() \
                 .exclude(winner_id__in=seen_players_ids) \
                 .filter(looser_id__in=target_players_ids) \
+                .exclude(Q(winner_score=-1) | Q(looser_score=-1)) \
                 .order_by('winner_id', '-tournament__start_date') \
                 .distinct('winner_id') \
                 .select_related('looser__upsettreenode')
