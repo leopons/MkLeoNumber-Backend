@@ -1,4 +1,7 @@
 from django.db import models
+# LOGGING
+import logging
+logger = logging.getLogger('data_processing')
 
 
 class Player(models.Model):
@@ -49,3 +52,24 @@ class UpsetTreeNode(models.Model):
     upset = models.ForeignKey(
         Set, on_delete=models.CASCADE, null=True, blank=True)
     node_depth = models.IntegerField()
+
+    def get_root_path(self):
+        logger.info(self)
+        if self.parent is None:
+            return [self]
+        else:
+            return self.parent.get_root_path() + [self]
+
+    def __str__(self):
+        if self.upset is None:
+            return 'ROOT'
+        else:
+            return ("%s %s - %s %s @ %s %s - %s" % (
+                self.upset.winner.tag,
+                self.upset.winner_score,
+                self.upset.looser_score,
+                self.upset.looser.tag,
+                self.upset.tournament.name,
+                self.upset.round_name,
+                self.upset.tournament.start_date
+            ))
