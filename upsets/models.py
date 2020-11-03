@@ -58,7 +58,7 @@ class UpsetTreeNode(models.Model):
         if self.parent is None:
             return [self]
         else:
-            return self.parent.get_root_path() + [self]
+            return [self] + self.parent.get_root_path()
 
     def __str__(self):
         if self.upset is None:
