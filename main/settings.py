@@ -56,9 +56,36 @@ WSGI_APPLICATION = 'main.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
-DATABASES = {
-    'default': config('DATABASE_URL', cast=db_url)
-}
+if config('GAE_APPLICATION', default=None):
+    # Running on production App Engine, so connect to Google Cloud SQL using
+    # the unix socket at /cloudsql/<your-cloudsql-connection string>
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'HOST': '/cloudsql/'+config('DB_PROD_CONNECTION_NAME'),
+            'NAME': config('DB_PROD_DATABASE'),
+            'USER': config('DB_PROD_USERNAME'),
+            'PASSWORD': config('DB_PROD_PASSWORD'),
+        }
+    }
+elif config('DB_MODE', default='local') == 'prod':
+    # Running in locally, but access the Google Cloud SQL instance in
+    # production via the proxy (more details in README)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'HOST': '127.0.0.1',
+            'PORT': '3306',
+            'NAME': config('DB_PROD_DATABASE'),
+            'USER': config('DB_PROD_USERNAME'),
+            'PASSWORD': config('DB_PROD_PASSWORD'),
+        }
+    }
+else:
+    # Running in development, so use the local Postgres database.
+    DATABASES = {
+        'default': config('LOCAL_DATABASE_URL', cast=db_url)
+    }
 
 
 # Password validation
@@ -182,3 +209,4 @@ LOGGING = {
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = 'static'

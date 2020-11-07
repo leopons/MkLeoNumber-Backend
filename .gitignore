@@ -15,3 +15,8 @@ venv.bak/
 
 # Local Data
 local/
+static/
+
+# GAE
+cloud_sql_proxy
+gae_env_variables.yaml
