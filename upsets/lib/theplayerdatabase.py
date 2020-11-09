@@ -2,6 +2,7 @@ from datetime import datetime
 import ast
 import sqlite3
 from upsets.models import Tournament, Player, Set
+from utils.orm_operators import BulkBatchManager
 # LOGGING
 import logging
 logger = logging.getLogger('data_processing')
@@ -41,87 +42,73 @@ class SqliteArchiveReader:
         """
         cur = self._connection.cursor()
         cur.execute("SELECT player_id, tag FROM players")
-
         rows = cur.fetchall()
-        for row in rows:
-            try:
-                player, created = Player.objects.get_or_create(id=row[0])
-                player.tag = row[1]
-                player.save()
-                if created:
-                    logger.info(
-                        'Successfully created new player with id %s'
-                        % row[0])
-                else:
-                    logger.info(
-                        'Successfully updated existing player with id %s'
-                        % row[0])
-            except Exception as ex:
-                template = "An exception of type {0} occurred during " \
-                    + "handling of player with id {1}. Arguments:\n{2!r}"
-                message = template.format(type(ex).__name__, row[0], ex.args)
-                logger.warning(message)
+
+        players_generator = (Player(id=row[0], tag=row[1]) for row in rows)
+        batcher = BulkBatchManager(
+            Player, ignore_conflicts=True, logger=logger)
+        batcher.bulk_update_or_create(players_generator, ['tag'])
+        logger.info('Successfully updated players from db file.')
 
     def update_tournaments(self):
         """Query all rows in the tournament_info table and save them in our DB
         """
         cur = self._connection.cursor()
         cur.execute("SELECT key, cleaned_name, start FROM tournament_info")
-
         rows = cur.fetchall()
-        for row in rows:
-            try:
-                tournament, created = \
-                    Tournament.objects.get_or_create(id=row[0])
-                tournament.name = row[1]
-                tournament.start_date = datetime.fromtimestamp(row[2]).date()
-                tournament.save()
-                if created:
-                    logger.info(
-                        'Successfully created new tournament with id %s'
-                        % row[0])
-                else:
-                    logger.info(
-                        'Successfully updated existing tournament with id %s'
-                        % row[0])
-            except Exception as ex:
-                template = "An exception of type {0} occurred during " \
-                    + "handling of tournament with id {1}. Arguments:\n{2!r}"
-                message = template.format(type(ex).__name__, row[0], ex.args)
-                logger.warning(message)
+
+        tournaments_generator = (Tournament(
+            id=row[0],
+            name=row[1],
+            start_date=datetime.fromtimestamp(row[2]).date()
+        ) for row in rows)
+
+        batcher = BulkBatchManager(
+            Tournament, ignore_conflicts=True, logger=logger)
+        batcher.bulk_update_or_create(
+            tournaments_generator, ['name', 'start_date'])
+        logger.info('Successfully updated tournaments from db file.')
 
     def update_sets(self):
         """Query all rows in the sets table and save them in our DB
         """
         cur = self._connection.cursor()
+        # The sets table presents some player id values that are not in the
+        # player table. This cause some integrity errors in our bulk create
+        # operations. To handle this we inner join the sets table with
+        # the player table when requesting the sqlite file, which takes a
+        # little more time but solves the integrity problem upstream
         cur.execute("""
             SELECT
-                key,
-                tournament_key,
-                winner_id,
-                p1_id,
-                p2_id,
-                p1_score,
-                p2_score,
-                location_names,
-                best_of
+                sets.key,
+                sets.tournament_key,
+                sets.winner_id,
+                sets.p1_id,
+                sets.p2_id,
+                sets.p1_score,
+                sets.p2_score,
+                sets.location_names,
+                sets.best_of
             FROM sets
+            INNER JOIN players as p1
+            ON sets.p1_id = p1.player_id
+            INNER JOIN players as p2
+            ON sets.p2_id = p2.player_id
             WHERE key IS NOT NULL
-                AND tournament_key IS NOT NULL
-                AND winner_id IS NOT NULL
-                AND p1_id IS NOT NULL
-                AND p2_id IS NOT NULL
+                AND sets.tournament_key IS NOT NULL
+                AND sets.winner_id IS NOT NULL
             """)
 
         rows = cur.fetchall()
 
         # Temporary solution as there are key duplicates in the player database
-        # export. We just remove all the sets and recreate them.
+        # export : We just remove all the sets and recreate them.
 
         Set.objects.all().delete()
+        logger.info('Successfully deleted old Sets')
 
-        for row in rows:
-            try:
+        def sets_generator(data):
+            for row in data:
                 set = Set(original_id=row[0], tournament_id=row[1])
                 if row[2] == row[3]:
                     # winner is player 1
@@ -139,16 +126,13 @@ class SqliteArchiveReader:
                     logger.warning(
                         'winner_id does not match p1_id or p2_id on set %s'
                         % row[0])
-                    break
                 set.round_name = ast.literal_eval(row[7])[-1]
                 set.best_of = row[8]
-                set.save()
-                logger.info('Successfully created new set with id %s' % row[0])
-            except Exception as ex:
-                template = "An exception of type {0} occurred during " \
-                    + "handling of set with id {1}. Arguments:\n{2!r}"
-                message = template.format(type(ex).__name__, row[0], ex.args)
-                logger.warning(message)
+                yield set
+
+        batcher = BulkBatchManager(Set, logger=logger)
+        batcher.bulk_create(sets_generator(rows))
+        logger.info('Successfully updated sets from db file.')
 
     def update_all_data(self):
         """Query the db file and update all the data in our db
