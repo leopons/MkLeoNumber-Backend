@@ -4,9 +4,9 @@ from itertools import islice
 class BulkBatchManager:
     """A class to use django orm bulk method by batches
 
-    This class provide an interface to import the data available
-    in sqlite exports coming from The Player Satabase website
-    https://github.com/smashdata/ThePlayerDatabase
+    This class provide a way to make bulk db operations like bulk creating
+    or bulk updating given a certain batch size, in order to reduce the
+    memory cost in Python and the DB, and increase the speed of the operation
 
     Attributes
     ----------
