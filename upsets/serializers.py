@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from upsets.models import UpsetTreeNode, Set, Tournament
+from upsets.models import UpsetTreeNode, Set, Tournament, Player
 
 
 class TournamentSerializer(serializers.ModelSerializer):
@@ -27,3 +27,10 @@ class UpsetTreeNodeSerializer(serializers.ModelSerializer):
     class Meta:
         model = UpsetTreeNode
         fields = ['node_depth', 'upset']
+
+
+class PlayerSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Player
+        fields = ['id', 'tag']

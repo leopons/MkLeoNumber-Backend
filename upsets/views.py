@@ -1,7 +1,8 @@
 from upsets.models import UpsetTreeNode, Player
-from upsets.serializers import UpsetTreeNodeSerializer
+from upsets.serializers import UpsetTreeNodeSerializer, PlayerSerializer
 from django.http import Http404
 from rest_framework.views import APIView
+from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 
 
@@ -27,3 +28,18 @@ class UpsetPath(APIView):
             {'player_tag': player.tag,
              'path_exist': True,
              'path': serializer.data})
+
+
+class PlayerSearch(ListAPIView):
+    serializer_class = PlayerSerializer
+
+    def get_queryset(self):
+        """
+        Restricts the returned players by filtering tags against the `term`
+        query parameter in the URL.
+        """
+        queryset = Player.objects.all()
+        searchterm = self.request.query_params.get('term', None)
+        if searchterm is not None:
+            queryset = queryset.filter(tag__unaccent__icontains=searchterm)
+        return queryset[:20]

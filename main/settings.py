@@ -12,6 +12,7 @@ ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='*', cast=Csv())
 # Application definition
 
 INSTALLED_APPS = [
+    'django.contrib.postgres',
     'rest_framework',
     'upsets.apps.UpsetsConfig',
     'django.contrib.admin',
