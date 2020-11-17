@@ -14,9 +14,26 @@ class Command(BaseCommand):
             'path',
             type=str,
             help='Path of the db sqlite file to read')
+        parser.add_argument(
+            '--object',
+            '-o',
+            type=str,
+            help=('Type objects to update, mainly for test purposes. '
+                  + 'Possibles are players, tournaments, or sets.'))
 
     @log_exceptions(logger)
     def handle(self, *args, **options):
         path = options['path']
         reader = SqliteArchiveReader(path)
-        reader.update_all_data()
+        if options['object']:
+            if options['object'] == 'players':
+                reader.update_players()
+            elif options['object'] == 'tournaments':
+                reader.update_tournaments()
+            elif options['object'] == 'sets':
+                reader.update_sets()
+            else:
+                logger.error('Unknown object type. Possibles are players, '
+                             + 'tournaments, or sets.')
+        else:
+            reader.update_all_data()
