@@ -1,7 +1,7 @@
 from datetime import datetime
 import ast
 import sqlite3
-from upsets.models import Tournament, Player, Set
+from upsets.models import Tournament, Player, Set, TwitterTag
 from utils.orm_operators import BulkBatchManager
 # LOGGING
 import logging
@@ -41,7 +41,7 @@ class SqliteArchiveReader:
         """Query all rows in the player table and save them in our DB
         """
         cur = self._connection.cursor()
-        cur.execute("SELECT player_id, tag FROM players")
+        cur.execute("SELECT player_id, tag, social FROM players")
         rows = cur.fetchall()
 
         players_generator = (Player(id=row[0], tag=row[1]) for row in rows)
@@ -49,6 +49,18 @@ class SqliteArchiveReader:
             Player, ignore_conflicts=True, logger=logger)
         batcher.bulk_update_or_create(players_generator, ['tag'])
         logger.info('Successfully updated players from db file.')
+
+        # Create new twitter tags on the go
+        def twitter_tag_generator(data):
+            for row in data:
+                twitters = ast.literal_eval(row[2])['twitter']
+                for twitter in twitters:
+                    tag = TwitterTag(tag=twitter, player_id=row[0])
+                    yield tag
+        batcher = BulkBatchManager(
+            TwitterTag, ignore_conflicts=True, logger=logger)
+        batcher.bulk_create(twitter_tag_generator(rows))
+        logger.info('Successfully added new twitter tags from db file.')
 
     def update_tournaments(self):
         """Query all rows in the tournament_info table and save them in our DB

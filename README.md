@@ -161,6 +161,7 @@ env_variables:
   DB_PROD_DATABASE: 'database-instance-name'
   DB_PROD_USERNAME: 'database-user-name'
   DB_PROD_PASSWORD: 'database-user-password'
+  TWITTER_BEARER_TOKEN: 'twitter-api-bearer-token'
 ```
 
 ### Deployment

@@ -59,6 +59,8 @@ WSGI_APPLICATION = 'main.wsgi.application'
 # we do not care about cross-origin requests
 CORS_ALLOW_ALL_ORIGINS = True
 
+# API KEYS
+TWITTER_BEARER_TOKEN = config('TWITTER_BEARER_TOKEN', default=None)
 
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases

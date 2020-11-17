@@ -1,4 +1,4 @@
-from upsets.models import UpsetTreeNode, Player
+from upsets.models import UpsetTreeNode, Player, TwitterTag
 from upsets.serializers import UpsetTreeNodeSerializer, PlayerSerializer
 from django.http import Http404
 from rest_framework.views import APIView
@@ -43,3 +43,31 @@ class PlayerSearch(ListAPIView):
         if searchterm is not None:
             queryset = queryset.filter(tag__unaccent__icontains=searchterm)
         return queryset[:20]
+
+
+class PlayerTwitterTag(APIView):
+    """
+    Get a valid twitter tag for a given player id.
+
+    We made this a different endpoint than the upsetpath. We could include this
+    in the serializer of the Player but it would increase the upsetpath
+    response time significatively for an enduser (possibly mutiple synchronous
+    calls to twitter) so we prefer to keep this separated and make
+    asynchronous calls from the front end
+    """
+    def get(self, request, id, format=None):
+        try:
+            player = Player.objects.get(id=id)
+            twittertags_candidates = TwitterTag.objects.filter(
+                player=player, obsolete=False)
+            for twittertag in twittertags_candidates:
+                valid = twittertag.check_validity()
+                if valid:
+                    return Response(
+                        {'player_id': player.id,
+                         'twitter_tag': twittertag.tag})
+        except Player.DoesNotExist:
+            raise Http404
+        return Response(
+            {'player_id': player.id,
+             'twitter_tag': None})
