@@ -43,6 +43,8 @@ class SqliteArchiveReader:
         cur = self._connection.cursor()
         cur.execute("SELECT player_id, tag, social FROM players")
         rows = cur.fetchall()
+        logger.info('Successfully fetched players data from db file, '
+                    + 'handling players and twitter tags updates...')
 
         players_generator = (Player(id=row[0], tag=row[1]) for row in rows)
         batcher = BulkBatchManager(
@@ -68,6 +70,8 @@ class SqliteArchiveReader:
         cur = self._connection.cursor()
         cur.execute("SELECT key, cleaned_name, start FROM tournament_info")
         rows = cur.fetchall()
+        logger.info('Successfully fetched tournament data from db file, '
+                    + 'handling tournaments updates...')
 
         tournaments_generator = (Tournament(
             id=row[0],
@@ -112,12 +116,14 @@ class SqliteArchiveReader:
             """)
 
         rows = cur.fetchall()
+        logger.info('Successfully fetched sets data from db file, '
+                    + 'handling sets updates...')
 
         # Temporary solution as there are key duplicates in the player database
         # export : We just remove all the sets and recreate them.
 
         Set.objects.all().delete()
-        logger.info('Successfully deleted old Sets')
+        logger.info('Successfully deleted old Sets.')
 
         def sets_generator(data):
             for row in data:
