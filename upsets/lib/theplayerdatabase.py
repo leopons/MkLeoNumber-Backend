@@ -104,7 +104,8 @@ class SqliteArchiveReader:
                 sets.p1_score,
                 sets.p2_score,
                 sets.location_names,
-                sets.best_of
+                sets.best_of,
+                sets.game_data
             FROM sets
             INNER JOIN players as p1
             ON sets.p1_id = p1.player_id
@@ -146,6 +147,20 @@ class SqliteArchiveReader:
                         % row[0])
                 set.round_name = ast.literal_eval(row[7])[-1]
                 set.best_of = row[8]
+                set.winner_characters = []
+                set.looser_characters = []
+                try:
+                    for game_data in ast.literal_eval(row[9]):
+                        (winner_char, looser_char) = (
+                            (game_data['winner_char'].replace('ultimate/', '')),
+                            (game_data['loser_char'].replace('ultimate/', '')))
+                        if winner_char not in set.winner_characters:
+                            set.winner_characters.append(winner_char)
+                        if looser_char not in set.looser_characters:
+                            set.looser_characters.append(looser_char)
+                except ValueError as ex:
+                    # Ignore the malformed values when doing literal_eval
+                    logger.debug(ex)
                 yield set
 
         batcher = BulkBatchManager(Set, logger=logger)
