@@ -49,9 +49,9 @@ This gives the shortest win path between the player requested and MkLeo, as well
                     "start_date": "2020-09-21"
                 },
                 "winner": "UnCalin",
-                "looser": "Ukiyo",
+                "loser": "Ukiyo",
                 "winner_score": 2,
-                "looser_score": 1,
+                "loser_score": 1,
                 "round_name": "Losers Round 2",
                 "best_of": 3
             }
@@ -64,9 +64,9 @@ This gives the shortest win path between the player requested and MkLeo, as well
                     "start_date": "2019-11-08"
                 },
                 "winner": "Ukiyo",
-                "looser": "Amiin",
+                "loser": "Amiin",
                 "winner_score": 2,
-                "looser_score": 1,
+                "loser_score": 1,
                 "round_name": "Losers Round 2",
                 "best_of": 3
             }
@@ -79,9 +79,9 @@ This gives the shortest win path between the player requested and MkLeo, as well
                     "start_date": "2020-09-21"
                 },
                 "winner": "Amiin",
-                "looser": "Tag",
+                "loser": "Tag",
                 "winner_score": 2,
-                "looser_score": 0,
+                "loser_score": 0,
                 "round_name": "Losers Round 5",
                 "best_of": 3
             }
@@ -94,9 +94,9 @@ This gives the shortest win path between the player requested and MkLeo, as well
                     "start_date": "2018-12-28"
                 },
                 "winner": "Tag",
-                "looser": "Glutonny",
+                "loser": "Glutonny",
                 "winner_score": 2,
-                "looser_score": 1,
+                "loser_score": 1,
                 "round_name": "Winners Round 4",
                 "best_of": 3
             }
@@ -109,9 +109,9 @@ This gives the shortest win path between the player requested and MkLeo, as well
                     "start_date": "2019-12-07"
                 },
                 "winner": "Glutonny",
-                "looser": "MkLeo",
+                "loser": "MkLeo",
                 "winner_score": 3,
-                "looser_score": 0,
+                "loser_score": 0,
                 "round_name": "Grand Final",
                 "best_of": 3
             }

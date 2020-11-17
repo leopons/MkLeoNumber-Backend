@@ -132,15 +132,15 @@ class SqliteArchiveReader:
                 if row[2] == row[3]:
                     # winner is player 1
                     set.winner_id = row[3]
-                    set.looser_id = row[4]
+                    set.loser_id = row[4]
                     set.winner_score = row[5]
-                    set.looser_score = row[6]
+                    set.loser_score = row[6]
                 elif row[2] == row[4]:
                     # winner is player 2
                     set.winner_id = row[4]
-                    set.looser_id = row[3]
+                    set.loser_id = row[3]
                     set.winner_score = row[6]
-                    set.looser_score = row[5]
+                    set.loser_score = row[5]
                 else:
                     logger.warning(
                         'winner_id does not match p1_id or p2_id on set %s'
@@ -148,16 +148,16 @@ class SqliteArchiveReader:
                 set.round_name = ast.literal_eval(row[7])[-1]
                 set.best_of = row[8]
                 set.winner_characters = []
-                set.looser_characters = []
+                set.loser_characters = []
                 try:
                     for game_data in ast.literal_eval(row[9]):
-                        (winner_char, looser_char) = (
+                        (winner_char, loser_char) = (
                             (game_data['winner_char'].replace('ultimate/', '')),
                             (game_data['loser_char'].replace('ultimate/', '')))
                         if winner_char not in set.winner_characters:
                             set.winner_characters.append(winner_char)
-                        if looser_char not in set.looser_characters:
-                            set.looser_characters.append(looser_char)
+                        if loser_char not in set.loser_characters:
+                            set.loser_characters.append(loser_char)
                 except ValueError as ex:
                     # Ignore the malformed values when doing literal_eval
                     logger.debug(ex)

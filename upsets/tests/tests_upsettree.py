@@ -26,30 +26,30 @@ class UpsetTree_GeneralTestCase(TestCase):
         ])
         sets_to_bulk_create = [
             # The best player lose once to 2 (2019) and twice to 1 (2019, 2020)
-            Set(tournament_id='2', winner_id='1', looser_id='3'),
-            Set(tournament_id='2', winner_id='2', looser_id='3'),
-            Set(tournament_id='2', winner_id='3', looser_id='4'),
-            Set(tournament_id='2', winner_id='3', looser_id='5'),
-            Set(tournament_id='1', winner_id='1', looser_id='3'),
-            Set(tournament_id='1', winner_id='3', looser_id='2'),
-            Set(tournament_id='1', winner_id='3', looser_id='4'),
-            Set(tournament_id='1', winner_id='3', looser_id='5'),
+            Set(tournament_id='2', winner_id='1', loser_id='3'),
+            Set(tournament_id='2', winner_id='2', loser_id='3'),
+            Set(tournament_id='2', winner_id='3', loser_id='4'),
+            Set(tournament_id='2', winner_id='3', loser_id='5'),
+            Set(tournament_id='1', winner_id='1', loser_id='3'),
+            Set(tournament_id='1', winner_id='3', loser_id='2'),
+            Set(tournament_id='1', winner_id='3', loser_id='4'),
+            Set(tournament_id='1', winner_id='3', loser_id='5'),
             # Player 4 beat player 1 (2020) and 2 (2019)
-            Set(tournament_id='2', winner_id='1', looser_id='4'),
-            Set(tournament_id='2', winner_id='4', looser_id='2'),
-            Set(tournament_id='2', winner_id='5', looser_id='4'),
-            Set(tournament_id='1', winner_id='4', looser_id='1'),
-            Set(tournament_id='1', winner_id='2', looser_id='4'),
-            Set(tournament_id='1', winner_id='5', looser_id='4'),
+            Set(tournament_id='2', winner_id='1', loser_id='4'),
+            Set(tournament_id='2', winner_id='4', loser_id='2'),
+            Set(tournament_id='2', winner_id='5', loser_id='4'),
+            Set(tournament_id='1', winner_id='4', loser_id='1'),
+            Set(tournament_id='1', winner_id='2', loser_id='4'),
+            Set(tournament_id='1', winner_id='5', loser_id='4'),
             # Player 5 beat player 2 once (2020)
-            Set(tournament_id='2', winner_id='1', looser_id='5'),
-            Set(tournament_id='2', winner_id='2', looser_id='5'),
-            Set(tournament_id='1', winner_id='1', looser_id='5'),
-            Set(tournament_id='1', winner_id='5', looser_id='2'),
+            Set(tournament_id='2', winner_id='1', loser_id='5'),
+            Set(tournament_id='2', winner_id='2', loser_id='5'),
+            Set(tournament_id='1', winner_id='1', loser_id='5'),
+            Set(tournament_id='1', winner_id='5', loser_id='2'),
             # Player 6 never won
-            Set(tournament_id='1', winner_id='1', looser_id='6'),
-            Set(tournament_id='1', winner_id='2', looser_id='6'),
-            Set(tournament_id='1', winner_id='3', looser_id='6')
+            Set(tournament_id='1', winner_id='1', loser_id='6'),
+            Set(tournament_id='1', winner_id='2', loser_id='6'),
+            Set(tournament_id='1', winner_id='3', loser_id='6')
         ]
         for set in sets_to_bulk_create:
             set.original_id = 'placeholder'

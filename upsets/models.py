@@ -69,12 +69,12 @@ class Set(models.Model):
         Player, on_delete=models.CASCADE, related_name='winner')
     winner_characters = ArrayField(
         models.CharField(max_length=100), default=empty_array)
-    looser = models.ForeignKey(
-        Player, on_delete=models.CASCADE, related_name='looser')
-    looser_characters = ArrayField(
+    loser = models.ForeignKey(
+        Player, on_delete=models.CASCADE, related_name='loser')
+    loser_characters = ArrayField(
         models.CharField(max_length=100), default=empty_array)
     winner_score = models.IntegerField(null=True, blank=True)
-    looser_score = models.IntegerField(null=True, blank=True)
+    loser_score = models.IntegerField(null=True, blank=True)
     round_name = models.CharField(max_length=1000, null=True, blank=True)
     best_of = models.IntegerField(null=True, blank=True)
 

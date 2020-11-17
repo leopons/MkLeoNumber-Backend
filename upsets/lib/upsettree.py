@@ -51,11 +51,11 @@ class UpsetTreeManager:
             upsets = Set.objects \
                 .all() \
                 .exclude(winner_id__in=seen_players_ids) \
-                .filter(looser_id__in=target_players_ids) \
-                .exclude(Q(winner_score=-1) | Q(looser_score=-1)) \
+                .filter(loser_id__in=target_players_ids) \
+                .exclude(Q(winner_score=-1) | Q(loser_score=-1)) \
                 .order_by('winner_id', '-tournament__start_date') \
                 .distinct('winner_id') \
-                .select_related('looser__upsettreenode')
+                .select_related('loser__upsettreenode')
             # .distinct('col_name') works only on postgres and select the
             # first row given the order_by placed before (see django doc)
             # Here, we keep the most recent upset of all the possible ones.
@@ -70,8 +70,8 @@ class UpsetTreeManager:
                         # directly use winner_id to avoid fetching the player
                         # object related to the upset
                         player_id=upset.winner_id,
-                        # We prefetched the upsettreenode of the looser
-                        parent=upset.looser.upsettreenode,
+                        # We prefetched the upsettreenode of the loser
+                        parent=upset.loser.upsettreenode,
                         upset=upset,
                         node_depth=current_depth)
                     to_bulk_create.append(elt)

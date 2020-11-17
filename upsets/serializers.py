@@ -14,14 +14,14 @@ class SetSerializer(serializers.ModelSerializer):
     tournament = TournamentSerializer()
     winner = serializers.SlugRelatedField(slug_field='tag', read_only=True)
     winner_characters = serializers.ListField(child=serializers.CharField())
-    looser = serializers.SlugRelatedField(slug_field='tag', read_only=True)
-    looser_characters = serializers.ListField(child=serializers.CharField())
+    loser = serializers.SlugRelatedField(slug_field='tag', read_only=True)
+    loser_characters = serializers.ListField(child=serializers.CharField())
 
     class Meta:
         model = Set
-        fields = ['tournament', 'winner', 'looser', 'winner_score',
-                  'looser_score', 'round_name', 'best_of', 'winner_characters',
-                  'looser_characters']
+        fields = ['tournament', 'winner', 'loser', 'winner_score',
+                  'loser_score', 'round_name', 'best_of', 'winner_characters',
+                  'loser_characters']
 
 
 class UpsetTreeNodeSerializer(serializers.ModelSerializer):
