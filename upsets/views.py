@@ -41,7 +41,9 @@ class PlayerSearch(ListAPIView):
         queryset = Player.objects.all()
         searchterm = self.request.query_params.get('term', None)
         if searchterm is not None:
-            queryset = queryset.filter(tag__unaccent__icontains=searchterm)
+            queryset = queryset.filter(tag__unaccent__icontains=searchterm) \
+                               .select_related('last_tournament') \
+                               .order_by('-played_sets_count')
         return queryset[:20]
 
 

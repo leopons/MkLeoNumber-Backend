@@ -34,6 +34,8 @@ class UpsetTreeNodeSerializer(serializers.ModelSerializer):
 
 class PlayerSerializer(serializers.ModelSerializer):
 
+    last_tournament = TournamentSerializer()
+
     class Meta:
         model = Player
-        fields = ['id', 'tag']
+        fields = ['id', 'tag', 'main_character', 'last_tournament']
