@@ -5,6 +5,7 @@ from django.db.models import BooleanField, Case, Value, When
 from rest_framework.views import APIView
 from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
+from rest_framework.exceptions import ParseError
 
 
 class UpsetPath(APIView):
@@ -39,18 +40,23 @@ class PlayerSearch(ListAPIView):
         Restricts the returned players by filtering tags against the `term`
         query parameter in the URL.
         """
-        queryset = Player.objects.all()
         searchterm = self.request.query_params.get('term', None)
-        if searchterm is not None:
-            queryset = queryset.filter(tag__unaccent__icontains=searchterm) \
-                               .annotate(is_start=Case(
-                                    When(tag__unaccent__istartswith=searchterm,
-                                         then=Value(True)),
-                                    default=False,
-                                    output_field=BooleanField())) \
-                               .select_related('last_tournament') \
-                               .order_by('-is_start', '-played_sets_count')
-        return queryset[:20]
+        if searchterm:
+            queryset = Player.objects \
+                .filter(tag__unaccent__icontains=searchterm) \
+                .annotate(
+                    is_start=Case(
+                        When(tag__unaccent__istartswith=searchterm,
+                             then=Value(True)),
+                        default=False,
+                        output_field=BooleanField())) \
+                .select_related('last_tournament') \
+                .order_by('-is_start', '-played_sets_count')
+            return queryset[:20]
+        else:
+            message = \
+                "Url should contain a non empty 'term' query string parameter."
+            raise ParseError(detail=message)
 
 
 class PlayerTwitterTag(APIView):
