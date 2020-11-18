@@ -1,6 +1,7 @@
 from upsets.models import UpsetTreeNode, Player, TwitterTag
 from upsets.serializers import UpsetTreeNodeSerializer, PlayerSerializer
 from django.http import Http404
+from django.db.models import BooleanField, Case, Value, When
 from rest_framework.views import APIView
 from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
@@ -42,8 +43,13 @@ class PlayerSearch(ListAPIView):
         searchterm = self.request.query_params.get('term', None)
         if searchterm is not None:
             queryset = queryset.filter(tag__unaccent__icontains=searchterm) \
+                               .annotate(is_start=Case(
+                                    When(tag__unaccent__istartswith=searchterm,
+                                         then=Value(True)),
+                                    default=False,
+                                    output_field=BooleanField())) \
                                .select_related('last_tournament') \
-                               .order_by('-played_sets_count')
+                               .order_by('-is_start', '-played_sets_count')
         return queryset[:20]
 
 

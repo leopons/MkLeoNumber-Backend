@@ -32,6 +32,11 @@ class Player(models.Model):
         Tournament, on_delete=models.SET_NULL, null=True, blank=True)
     played_sets_count = models.IntegerField(default=0)
 
+    class Meta:
+        indexes = [
+            models.Index(fields=['-played_sets_count']),
+        ]
+
     def update_main_character(self):
         character_counts = {}
         for set in self.wins.all():
