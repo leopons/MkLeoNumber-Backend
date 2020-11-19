@@ -149,11 +149,19 @@ LOGGING = {
             'format': ('%(log_color)s%(name)s %(asctime)s %(levelname)-8s %(message)s'),
             'datefmt': '%Y-%m-%d %H:%M:%S',
             'log_colors': {
-                'DEBUG':    'bold_black',
+                'DEBUG':    'thin_white',
                 'INFO':     'white',
                 'WARNING':  'yellow',
                 'ERROR':    'red',
                 'CRITICAL': 'bold_red',
+            }
+        },
+        'console_db_queries': {
+            '()': 'colorlog.ColoredFormatter',
+            'format': ('%(log_color)s%(name)s %(asctime)s %(levelname)-8s %(message).'+config('DB_LOGS_MAX_CHARS', default='120')+'s'),
+            'datefmt': '%Y-%m-%d %H:%M:%S',
+            'log_colors': {
+                'DEBUG':    'cyan',
             }
         }
     },
@@ -178,6 +186,12 @@ LOGGING = {
             'formatter': 'console_color',
             'filters': ['require_debug_true']
         },
+        'db_queries_console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'console_db_queries',
+            'filters': ['require_debug_true']
+        },
         'mail_admins': {
             'level': 'ERROR',
             'class': 'django.utils.log.AdminEmailHandler',
@@ -197,7 +211,8 @@ LOGGING = {
             'propagate': False
         },
         'django.db.backends': {
-            'handlers': ['prod_console', 'debug_console'],
+            'handlers': ['prod_console', 'debug_console'] +
+                        (['db_queries_console'] if config('DB_LOGS', default=False) else []),
             'level': 'DEBUG',
             'propagate': False
         },

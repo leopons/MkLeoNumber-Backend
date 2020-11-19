@@ -131,6 +131,9 @@ I'm using Django.
 Most of the data preparation and calculation logic can be found in `upsets/lib`.
 Otherwise, this is a pretty standard Django codebase : model based structure with DRF handling the serialization, with a `requirements.txt` file for the dependencies, and some tests to run with `python manage.py test`.
 
+There is a lot of DB queries optimisation going on. To ease the task, I've set up DB queries console logging when `DB_LOGS=True`. The log messages for these lines are limited to 120 characters to avoid console flooding. You can change that with `DB_LOGS_MAX_CHARS`, for example :
+`DB_LOGS=True DB_LOGS_MAX_CHARS=200 python manage.py process_players`
+
 ## Production Environnement
 
 For production I'm using Google App Engine Standard environnement with a Cloud SQL Postgres instance.
