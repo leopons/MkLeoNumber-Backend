@@ -164,6 +164,7 @@ class UpsetTreeNode(models.Model):
     def get_root_path(self):
         logger.info(self)
         if self.parent is None:
-            return [self]
+            # We do not return the last node as it is empty and useless
+            return []
         else:
             return [self] + self.parent.get_root_path()
