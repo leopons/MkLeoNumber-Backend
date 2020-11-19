@@ -50,25 +50,44 @@ class Player(models.Model):
         if character_counts:
             self.main_character = max(
                 character_counts, key=character_counts.get)
-            self.save()
 
     def update_last_tournament(self):
+        '''
+        This will be called on players with prefetched wins and loses, that's
+        why we proceed with these to make our calculation instead of directly
+        using a Tournament query like below. The Tournament query would indeed
+        perform a useless extra call to the DB. (even thougt it might have been
+        better if the wins and loses weren't prefetech already)
+
         tournament = Tournament.objects \
             .filter(Q(sets__winner=self) | Q(sets__loser=self)) \
             .order_by('-start_date') \
             .first()
-        if tournament:
-            self.last_tournament = tournament
-            self.save()
+        '''
+        tournaments = \
+            [set.tournament for set in self.wins.all()] + \
+            [set.tournament for set in self.loses.all()]
+        if tournaments:
+            self.last_tournament = max(tournaments, key=lambda k: k.start_date)
 
-    # This is useful to order the results of the player search. We do not
-    # compute it on the fly for each call because that would drastically
-    # increase DB workload
     def update_played_sets_count(self):
+        '''
+        This is useful to order the results of the player search. We do not
+        compute it on the fly for each call because that would drastically
+        increase DB workload
+
+        This will be called on players with prefetched wins and loses, that's
+        why we proceed with these to make our calculation instead of directly
+        using a Set query like below. The Set query would indeed perform a
+        useless extra call to the DB. (even thougt it might have been
+        better if the wins and loses weren't prefetech already)
+
         self.played_sets_count = Set.objects \
             .filter(Q(winner=self) | Q(loser=self)) \
             .count()
-        self.save()
+        '''
+        count = len(self.wins.all()) + len(self.loses.all())
+        self.played_sets_count = count
 
 
 class TwitterTag(models.Model):

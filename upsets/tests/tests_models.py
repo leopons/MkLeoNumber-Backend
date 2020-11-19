@@ -53,6 +53,7 @@ class Models_GeneralTestCase(TestCase):
     def test_update_main_character(self):
         for player in Player.objects.all():
             player.update_main_character()
+            player.save()
         self.assertEqual(Player.objects.get(id='1').main_character, 'joker')
         self.assertEqual(Player.objects.get(id='2').main_character, 'peach')
         self.assertEqual(Player.objects.get(id='3').main_character, None)
@@ -62,6 +63,7 @@ class Models_GeneralTestCase(TestCase):
     def test_update_last_tournament(self):
         for player in Player.objects.all():
             player.update_last_tournament()
+            player.save()
         self.assertEqual(Player.objects.get(id='1').last_tournament_id, '1')
         self.assertEqual(Player.objects.get(id='2').last_tournament_id, '2')
         self.assertEqual(Player.objects.get(id='3').last_tournament_id, None)
@@ -71,6 +73,7 @@ class Models_GeneralTestCase(TestCase):
     def test_update_played_sets_count(self):
         for player in Player.objects.all():
             player.update_played_sets_count()
+            player.save()
         self.assertEqual(Player.objects.get(id='1').played_sets_count, 4)
         self.assertEqual(Player.objects.get(id='2').played_sets_count, 2)
         self.assertEqual(Player.objects.get(id='3').played_sets_count, 0)
