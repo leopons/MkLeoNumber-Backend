@@ -9,12 +9,19 @@ class TournamentSerializer(serializers.ModelSerializer):
         fields = ['name', 'start_date']
 
 
+class LightPlayerSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Player
+        fields = ['id', 'tag', 'main_character']
+
+
 class SetSerializer(serializers.ModelSerializer):
 
     tournament = TournamentSerializer()
-    winner = serializers.SlugRelatedField(slug_field='tag', read_only=True)
+    winner = LightPlayerSerializer()
     winner_characters = serializers.ListField(child=serializers.CharField())
-    loser = serializers.SlugRelatedField(slug_field='tag', read_only=True)
+    loser = LightPlayerSerializer()
     loser_characters = serializers.ListField(child=serializers.CharField())
 
     class Meta:
@@ -25,6 +32,7 @@ class SetSerializer(serializers.ModelSerializer):
 
 
 class UpsetTreeNodeSerializer(serializers.ModelSerializer):
+
     upset = SetSerializer()
 
     class Meta:
