@@ -49,9 +49,14 @@ class PlayerSearch(ListAPIView):
                         When(tag__unaccent__istartswith=searchterm,
                              then=Value(True)),
                         default=False,
+                        output_field=BooleanField()),
+                    is_exact=Case(
+                        When(tag__unaccent__iexact=searchterm,
+                             then=Value(True)),
+                        default=False,
                         output_field=BooleanField())) \
                 .select_related('last_tournament') \
-                .order_by('-is_start', '-played_sets_count')
+                .order_by('-is_exact', '-is_start', '-played_sets_count')
             return queryset[:20]
         else:
             message = \
