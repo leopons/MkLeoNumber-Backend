@@ -1,7 +1,7 @@
 from datetime import datetime
 import ast
 import sqlite3
-from upsets.models import Tournament, Player, Set
+from upsets.models import Tournament, Player, Set, TwitterTag
 from utils.orm_operators import BulkBatchManager
 # LOGGING
 import logging
@@ -41,8 +41,10 @@ class SqliteArchiveReader:
         """Query all rows in the player table and save them in our DB
         """
         cur = self._connection.cursor()
-        cur.execute("SELECT player_id, tag FROM players")
+        cur.execute("SELECT player_id, tag, social FROM players")
         rows = cur.fetchall()
+        logger.info('Successfully fetched players data from db file, '
+                    + 'handling players and twitter tags updates...')
 
         players_generator = (Player(id=row[0], tag=row[1]) for row in rows)
         batcher = BulkBatchManager(
@@ -50,12 +52,26 @@ class SqliteArchiveReader:
         batcher.bulk_update_or_create(players_generator, ['tag'])
         logger.info('Successfully updated players from db file.')
 
+        # Create new twitter tags on the go
+        def twitter_tag_generator(data):
+            for row in data:
+                twitters = ast.literal_eval(row[2])['twitter']
+                for twitter in twitters:
+                    tag = TwitterTag(tag=twitter, player_id=row[0])
+                    yield tag
+        batcher = BulkBatchManager(
+            TwitterTag, ignore_conflicts=True, logger=logger)
+        batcher.bulk_create(twitter_tag_generator(rows))
+        logger.info('Successfully added new twitter tags from db file.')
+
     def update_tournaments(self):
         """Query all rows in the tournament_info table and save them in our DB
         """
         cur = self._connection.cursor()
         cur.execute("SELECT key, cleaned_name, start FROM tournament_info")
         rows = cur.fetchall()
+        logger.info('Successfully fetched tournament data from db file, '
+                    + 'handling tournaments updates...')
 
         tournaments_generator = (Tournament(
             id=row[0],
@@ -88,7 +104,8 @@ class SqliteArchiveReader:
                 sets.p1_score,
                 sets.p2_score,
                 sets.location_names,
-                sets.best_of
+                sets.best_of,
+                sets.game_data
             FROM sets
             INNER JOIN players as p1
             ON sets.p1_id = p1.player_id
@@ -100,12 +117,14 @@ class SqliteArchiveReader:
             """)
 
         rows = cur.fetchall()
+        logger.info('Successfully fetched sets data from db file, '
+                    + 'handling sets updates...')
 
         # Temporary solution as there are key duplicates in the player database
         # export : We just remove all the sets and recreate them.
 
         Set.objects.all().delete()
-        logger.info('Successfully deleted old Sets')
+        logger.info('Successfully deleted old Sets.')
 
         def sets_generator(data):
             for row in data:
@@ -113,21 +132,35 @@ class SqliteArchiveReader:
                 if row[2] == row[3]:
                     # winner is player 1
                     set.winner_id = row[3]
-                    set.looser_id = row[4]
+                    set.loser_id = row[4]
                     set.winner_score = row[5]
-                    set.looser_score = row[6]
+                    set.loser_score = row[6]
                 elif row[2] == row[4]:
                     # winner is player 2
                     set.winner_id = row[4]
-                    set.looser_id = row[3]
+                    set.loser_id = row[3]
                     set.winner_score = row[6]
-                    set.looser_score = row[5]
+                    set.loser_score = row[5]
                 else:
                     logger.warning(
                         'winner_id does not match p1_id or p2_id on set %s'
                         % row[0])
                 set.round_name = ast.literal_eval(row[7])[-1]
                 set.best_of = row[8]
+                set.winner_characters = []
+                set.loser_characters = []
+                try:
+                    for game_data in ast.literal_eval(row[9]):
+                        (winner_char, loser_char) = (
+                            (game_data['winner_char'].replace('ultimate/', '')),
+                            (game_data['loser_char'].replace('ultimate/', '')))
+                        if winner_char not in set.winner_characters:
+                            set.winner_characters.append(winner_char)
+                        if loser_char not in set.loser_characters:
+                            set.loser_characters.append(loser_char)
+                except ValueError as ex:
+                    # Ignore the malformed values when doing literal_eval
+                    logger.debug(ex)
                 yield set
 
         batcher = BulkBatchManager(Set, logger=logger)

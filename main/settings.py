@@ -12,6 +12,8 @@ ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='*', cast=Csv())
 # Application definition
 
 INSTALLED_APPS = [
+    'corsheaders',
+    'django.contrib.postgres',
     'rest_framework',
     'upsets.apps.UpsetsConfig',
     'django.contrib.admin',
@@ -23,6 +25,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -52,6 +55,12 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'main.wsgi.application'
 
+# For now all the endpoints are public and read-only,
+# we do not care about cross-origin requests
+CORS_ALLOW_ALL_ORIGINS = True
+
+# API KEYS
+TWITTER_BEARER_TOKEN = config('TWITTER_BEARER_TOKEN', default=None)
 
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
@@ -140,11 +149,19 @@ LOGGING = {
             'format': ('%(log_color)s%(name)s %(asctime)s %(levelname)-8s %(message)s'),
             'datefmt': '%Y-%m-%d %H:%M:%S',
             'log_colors': {
-                'DEBUG':    'bold_black',
+                'DEBUG':    'thin_white',
                 'INFO':     'white',
                 'WARNING':  'yellow',
                 'ERROR':    'red',
                 'CRITICAL': 'bold_red',
+            }
+        },
+        'console_db_queries': {
+            '()': 'colorlog.ColoredFormatter',
+            'format': ('%(log_color)s%(name)s %(asctime)s %(levelname)-8s %(message).'+config('DB_LOGS_MAX_CHARS', default='120')+'s'),
+            'datefmt': '%Y-%m-%d %H:%M:%S',
+            'log_colors': {
+                'DEBUG':    'cyan',
             }
         }
     },
@@ -169,6 +186,12 @@ LOGGING = {
             'formatter': 'console_color',
             'filters': ['require_debug_true']
         },
+        'db_queries_console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'console_db_queries',
+            'filters': ['require_debug_true']
+        },
         'mail_admins': {
             'level': 'ERROR',
             'class': 'django.utils.log.AdminEmailHandler',
@@ -188,7 +211,8 @@ LOGGING = {
             'propagate': False
         },
         'django.db.backends': {
-            'handlers': ['prod_console', 'debug_console'],
+            'handlers': ['prod_console', 'debug_console'] +
+                        (['db_queries_console'] if config('DB_LOGS', default=False) else []),
             'level': 'DEBUG',
             'propagate': False
         },

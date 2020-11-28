@@ -13,5 +13,16 @@ handlers:
 - url: /.*
   script: auto
 
+# Autoscaling parameters
+
+inbound_services:
+- warmup
+
+automatic_scaling:
+  min_instances: 1
+  max_instances: 25
+
+# Include secrets from another file
+
 includes:
   - gae_env_variables.yaml

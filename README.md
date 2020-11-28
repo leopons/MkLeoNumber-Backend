@@ -12,21 +12,21 @@ What do I mean by that ?
 Given all the sets that have been played in registered tournaments for this game, your upset distance to MkLeo is the minimal number of wins you need to go from you to him.
 
 Which means :
-- All the people that have won at least one time against MkLeo on a registered tournament have a distance of 1 from him. For exemple Glutonny have already won against MkLeo, thus he has a distance of 1.
-- All the people that have won at least one time against someone who have beaten MkLeo, have a distance of 2. Said differently, if you have beaten someone at a distance of 1, you are yourself at a distance of 2. For exemple Tag have already won against Glutonny, thus he has a distance of 2.
+- All the people that have won at least one time against MkLeo on a registered tournament have a distance of 1 from him. For exemple Glutonny has won against MkLeo at least one time, thus he has a distance of 1.
+- All the people that have won at least one time against someone who has beaten MkLeo, have a distance of 2. Said differently, if you have beaten someone who is at a distance of 1 from MkLeo, you are yourself at a distance of 2. For exemple Raflow has won one time against Glutonny, thus he has a distance of 2.
 - This goes on as many times as needed.
-- Your final distance is your minimal distance, ie the shortest path of wins that leads from you to MkLeo.
-- Some people may not have a score, if there is not any win path that can lead from him to MkLeo.
+- Your final distance is your minimal distance, ie the shortest path of wins that lead from you to MkLeo.
+- Some people may not have a score, if there is not any win path that can lead to MkLeo. This can happen for example with a player that has never won against anyone.
 
 The app objective is to calculate this distance and the shortest win path associated, see the endpoint part for some examples.
 
-*Disclaimer* : I know that "this means nothing", a player true level can't be determined by this distance, as it is heavily influenced by one time out-performances, or one may even say luck. But this is fun.
+*Disclaimer* : I am very aware that "this means nothing" : a player true level can't be determined by this distance, as it is heavily influenced by one time out-performances, or one may even say luck. But this is fun.
 
 ### Data
 
-I'm using data from [The Player Database](https://smashdata.gg/). Go check it out, it's a really nice website that aggregates and display data about Smash players. They've done a really nice work of reconciliation of player ids from different sources like smash.gg or challonge, there was not point for me in trying to re-do it.
+I'm using data from [The Player Database](https://smashdata.gg/). Go check it out, it's a really nice website that aggregates and displays data about Smash players. They've done a really nice work of reconciliation of player ids from different sources like smash.gg or challonge, there was not point for me in trying to re-do it.
 
-I'm account for all the Smash Ultimate sets on the Player Database, excepts for DQs. This means that some Online tournaments are used for the path calculation too, this may be changed in the future.
+I'm accounting for all the Smash Ultimate sets on the Player Database, excepts for DQs. This means that some Online tournaments are used for the path calculation too. I may change this in the future, or make it an option. If this is important to you, don't hesitate to make yourself heard [on twitter](https://twitter.com/UnCalinSSB).
 
 ## Endpoints
 
@@ -49,9 +49,9 @@ This gives the shortest win path between the player requested and MkLeo, as well
                     "start_date": "2020-09-21"
                 },
                 "winner": "UnCalin",
-                "looser": "Ukiyo",
+                "loser": "Ukiyo",
                 "winner_score": 2,
-                "looser_score": 1,
+                "loser_score": 1,
                 "round_name": "Losers Round 2",
                 "best_of": 3
             }
@@ -64,9 +64,9 @@ This gives the shortest win path between the player requested and MkLeo, as well
                     "start_date": "2019-11-08"
                 },
                 "winner": "Ukiyo",
-                "looser": "Amiin",
+                "loser": "Amiin",
                 "winner_score": 2,
-                "looser_score": 1,
+                "loser_score": 1,
                 "round_name": "Losers Round 2",
                 "best_of": 3
             }
@@ -79,9 +79,9 @@ This gives the shortest win path between the player requested and MkLeo, as well
                     "start_date": "2020-09-21"
                 },
                 "winner": "Amiin",
-                "looser": "Tag",
+                "loser": "Tag",
                 "winner_score": 2,
-                "looser_score": 0,
+                "loser_score": 0,
                 "round_name": "Losers Round 5",
                 "best_of": 3
             }
@@ -94,9 +94,9 @@ This gives the shortest win path between the player requested and MkLeo, as well
                     "start_date": "2018-12-28"
                 },
                 "winner": "Tag",
-                "looser": "Glutonny",
+                "loser": "Glutonny",
                 "winner_score": 2,
-                "looser_score": 1,
+                "loser_score": 1,
                 "round_name": "Winners Round 4",
                 "best_of": 3
             }
@@ -109,9 +109,9 @@ This gives the shortest win path between the player requested and MkLeo, as well
                     "start_date": "2019-12-07"
                 },
                 "winner": "Glutonny",
-                "looser": "MkLeo",
+                "loser": "MkLeo",
                 "winner_score": 3,
-                "looser_score": 0,
+                "loser_score": 0,
                 "round_name": "Grand Final",
                 "best_of": 3
             }
@@ -130,6 +130,9 @@ I'm using Django.
 
 Most of the data preparation and calculation logic can be found in `upsets/lib`.
 Otherwise, this is a pretty standard Django codebase : model based structure with DRF handling the serialization, with a `requirements.txt` file for the dependencies, and some tests to run with `python manage.py test`.
+
+There is a lot of DB queries optimisation going on. To ease the task, I've set up DB queries console logging when `DB_LOGS=True`. The log messages for these lines are limited to 120 characters to avoid console flooding. You can change that with `DB_LOGS_MAX_CHARS`, for example :
+`DB_LOGS=True DB_LOGS_MAX_CHARS=200 python manage.py process_players`
 
 ## Production Environnement
 
@@ -161,6 +164,7 @@ env_variables:
   DB_PROD_DATABASE: 'database-instance-name'
   DB_PROD_USERNAME: 'database-user-name'
   DB_PROD_PASSWORD: 'database-user-password'
+  TWITTER_BEARER_TOKEN: 'twitter-api-bearer-token'
 ```
 
 ### Deployment

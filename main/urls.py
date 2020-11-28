@@ -19,4 +19,5 @@ from django.urls import path, include
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('upsets/', include('upsets.urls')),
+    path('_ah/warmup/', include('warmup.urls')),
 ]

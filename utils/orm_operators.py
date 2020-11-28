@@ -67,3 +67,18 @@ class BulkBatchManager:
                 self._logger.info(
                     "Bulk updated or created new batch of %s %s instances"
                     % (len(items), self._model.__name__))
+
+    def bulk_update(self, generator, fields):
+        """Batch bulk update from a generator and a list of fields to update
+        """
+        while True:
+
+            items = list(islice(generator, self._batch_size))
+            if not items:
+                break
+            self._model.objects.bulk_update(items, fields)
+
+            if self._logger:
+                self._logger.info(
+                    "Bulk updated new batch of %s %s instances"
+                    % (len(items), self._model.__name__))
