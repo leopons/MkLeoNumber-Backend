@@ -150,14 +150,20 @@ class SqliteArchiveReader:
                 set.winner_characters = []
                 set.loser_characters = []
                 try:
-                    for game_data in ast.literal_eval(row[9]):
-                        (winner_char, loser_char) = (
-                            (game_data['winner_char'].replace('ultimate/', '')),
-                            (game_data['loser_char'].replace('ultimate/', '')))
-                        if winner_char not in set.winner_characters:
-                            set.winner_characters.append(winner_char)
-                        if loser_char not in set.loser_characters:
-                            set.loser_characters.append(loser_char)
+                    for gamedata in ast.literal_eval(row[9]):
+                        (game_winner_char, game_loser_char) = (
+                            (gamedata['winner_char'].replace('ultimate/', '')),
+                            (gamedata['loser_char'].replace('ultimate/', '')))
+                        if gamedata['winner_id'] == set.winner_id:
+                            set_winner_char = game_winner_char
+                            set_loser_char = game_loser_char
+                        else:
+                            set_winner_char = game_loser_char
+                            set_loser_char = game_winner_char
+                        if set_winner_char not in set.winner_characters:
+                            set.winner_characters.append(set_winner_char)
+                        if set_loser_char not in set.loser_characters:
+                            set.loser_characters.append(set_loser_char)
                 except ValueError as ex:
                     # Ignore the malformed values when doing literal_eval
                     logger.debug(ex)
