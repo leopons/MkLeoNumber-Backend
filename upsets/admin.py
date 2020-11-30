@@ -1,3 +1,11 @@
 from django.contrib import admin
+from upsets.models import Player, TwitterTag
 
-# Register your models here.
+
+class TwitterTagAdmin(admin.StackedInline):
+    model = TwitterTag
+
+
+@admin.register(Player)
+class PlayerAdmin(admin.ModelAdmin):
+    inlines = [TwitterTagAdmin]
