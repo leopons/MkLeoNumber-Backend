@@ -80,7 +80,7 @@ class PlayerTwitterTag(APIView):
             twittertags_candidates = TwitterTag.objects.filter(
                 player=player, obsolete=False)
             for twittertag in twittertags_candidates:
-                valid = twittertag.check_validity()
+                valid = twittertag.is_valid()
                 if valid:
                     return Response(
                         {'player_id': player.id,

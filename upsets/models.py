@@ -3,6 +3,7 @@ from main.settings import TWITTER_BEARER_TOKEN
 from django.contrib.postgres.fields import ArrayField
 from django.db.models import Q
 import requests
+from datetime import datetime
 # LOGGING
 import logging
 logger = logging.getLogger('data_processing')
@@ -97,9 +98,26 @@ class TwitterTag(models.Model):
     tag = models.CharField(max_length=1000)
     player = models.ForeignKey(Player, on_delete=models.CASCADE)
     obsolete = models.BooleanField(default=False)
+    date_last_checked = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         unique_together = ('tag', 'player',)
+        indexes = [
+            models.Index(fields=['player']),
+        ]
+
+    def is_valid(self):
+        if self.obsolete:
+            return False
+        if self.date_last_checked:
+            secs = (datetime.now() -
+                    self.date_last_checked.replace(tzinfo=None)) \
+                .total_seconds()
+            # If already has been checked the last 24h
+            if secs < (60 * 60 * 24):
+                return True
+        # default case
+        return self.check_validity()
 
     def check_validity(self):
         # Make an API call to twitter to check the existence of the account
@@ -108,8 +126,10 @@ class TwitterTag(models.Model):
         headers = {'authorization': 'Bearer '+TWITTER_BEARER_TOKEN}
         r = requests.get(twitter_search+self.tag, headers=headers)
         if r.ok:
-            # If the account exists, we return True but do not store anything
-            # as we DO want to check again the next times
+            # If the account exists, we return True and store the date, as we
+            # want to remember that for a day only.
+            self.date_last_checked = datetime.now()
+            self.save()
             return True
         elif r.status_code == 404:
             # If the account does not exists we mark the tag as obsolete to
