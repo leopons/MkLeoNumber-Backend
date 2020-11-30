@@ -1,8 +1,9 @@
 from datetime import datetime
 import ast
 import sqlite3
-from upsets.models import Tournament, Player, Set, TwitterTag
+from upsets.models import Tournament, Player, Set, TwitterTag, BatchUpdate
 from utils.orm_operators import BulkBatchManager
+from upsets.lib.upsettree import UpsetTreeManager
 # LOGGING
 import logging
 logger = logging.getLogger('data_processing')
@@ -26,8 +27,10 @@ class SqliteArchiveReader:
         Query all rows in the player table and save them in our DB
     update_tournaments()
         Query all rows in the tournament_info table and save them in our DB
-    update_sets()
+    create_sets()
         Query all rows in the sets table and save them in our DB
+    batch_update_sets_tree ()
+        Update all sets and tree nodes using the batch update method
     update_all_data()
         Query the db file and update all the data in our db
     """
@@ -85,8 +88,10 @@ class SqliteArchiveReader:
             tournaments_generator, ['name', 'start_date'])
         logger.info('Successfully updated tournaments from db file.')
 
-    def update_sets(self):
-        """Query all rows in the sets table and save them in our DB
+    def create_sets(self, batch_update):
+        """
+        Query all rows in the sets table and save them in our DB
+        attached to the given BatchUpdate object
         """
         cur = self._connection.cursor()
         # The sets table presents some player id values that are not in the
@@ -120,12 +125,6 @@ class SqliteArchiveReader:
         logger.info('Successfully fetched sets data from db file, '
                     + 'handling sets updates...')
 
-        # Temporary solution as there are key duplicates in the player database
-        # export : We just remove all the sets and recreate them.
-
-        Set.objects.all().delete()
-        logger.info('Successfully deleted old Sets.')
-
         def sets_generator(data):
             for row in data:
                 set = Set(original_id=row[0], tournament_id=row[1])
@@ -149,6 +148,7 @@ class SqliteArchiveReader:
                 set.best_of = row[8]
                 set.winner_characters = []
                 set.loser_characters = []
+                set.batch_update = batch_update
                 try:
                     for gamedata in ast.literal_eval(row[9]):
                         (game_winner_char, game_loser_char) = (
@@ -173,9 +173,21 @@ class SqliteArchiveReader:
         batcher.bulk_create(sets_generator(rows))
         logger.info('Successfully updated sets from db file.')
 
+    def batch_update_sets_tree(self):
+        batch_update = BatchUpdate.objects.create()
+        self.create_sets(batch_update)
+        upset_tree_manager = UpsetTreeManager('222927', batch_update)
+        upset_tree_manager.create_from_scratch()
+        # When all the data is built, switch the batch update to ready and
+        # delete the past batch update (the cascade will delete the related
+        # sets and update tree nodes)
+        batch_update.ready = True
+        batch_update.save()
+        BatchUpdate.objects.exclude(id=batch_update.id).delete()
+
     def update_all_data(self):
         """Query the db file and update all the data in our db
         """
         self.update_tournaments()
         self.update_players()
-        self.update_sets()
+        self.batch_update_sets_tree()

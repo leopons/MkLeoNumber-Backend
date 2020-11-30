@@ -1,6 +1,6 @@
 from datetime import datetime
 from django.test import TestCase
-from upsets.models import Player, Tournament, Set
+from upsets.models import Player, Tournament, Set, BatchUpdate
 
 
 class Models_GeneralTestCase(TestCase):
@@ -22,6 +22,7 @@ class Models_GeneralTestCase(TestCase):
                 start_date=datetime.strptime('01/01/19', '%d/%m/%y').date(),
                 name='old-tournament')
         ])
+        batch_update = BatchUpdate.objects.create()
         sets_to_bulk_create = [
             # players 2 & 3 haven't played in most recent tournament
             # player 1 mains joker, 4 mains mario, 5 we don't know
@@ -48,6 +49,7 @@ class Models_GeneralTestCase(TestCase):
         ]
         for set in sets_to_bulk_create:
             set.original_id = 'placeholder'
+            set.batch_update = batch_update
         Set.objects.bulk_create(sets_to_bulk_create)
 
     def test_update_main_character(self):

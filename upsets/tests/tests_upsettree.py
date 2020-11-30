@@ -1,6 +1,6 @@
 from datetime import datetime
 from django.test import TestCase
-from upsets.models import Player, Tournament, Set, UpsetTreeNode
+from upsets.models import Player, Tournament, Set, UpsetTreeNode, BatchUpdate
 from upsets.lib.upsettree import UpsetTreeManager
 
 
@@ -24,6 +24,7 @@ class UpsetTree_GeneralTestCase(TestCase):
                 start_date=datetime.strptime('01/01/19', '%d/%m/%y').date(),
                 name='old-tournament')
         ])
+        batch_update = BatchUpdate.objects.create()
         sets_to_bulk_create = [
             # The best player lose once to 2 (2019) and twice to 1 (2019, 2020)
             Set(tournament_id='2', winner_id='1', loser_id='3'),
@@ -53,10 +54,9 @@ class UpsetTree_GeneralTestCase(TestCase):
         ]
         for set in sets_to_bulk_create:
             set.original_id = 'placeholder'
+            set.batch_update = batch_update
         Set.objects.bulk_create(sets_to_bulk_create)
-        self.manager = UpsetTreeManager('3')
-        # Create an upsettree node, should get removed
-        UpsetTreeNode.objects.create(player_id='4', node_depth=2)
+        self.manager = UpsetTreeManager('3', batch_update)
 
     def test_create_from_scratch(self):
         self.manager.create_from_scratch()

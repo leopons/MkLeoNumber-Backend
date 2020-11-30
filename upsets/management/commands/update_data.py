@@ -31,7 +31,7 @@ class Command(BaseCommand):
             elif options['object'] == 'tournaments':
                 reader.update_tournaments()
             elif options['object'] == 'sets':
-                reader.update_sets()
+                reader.batch_update_sets_tree()
             else:
                 logger.error('Unknown object type. Possibles are players, '
                              + 'tournaments, or sets.')

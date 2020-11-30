@@ -143,6 +143,17 @@ class TwitterTag(models.Model):
             return False
 
 
+class BatchUpdate(models.Model):
+    '''
+    We can't make iterative updates for the Sets (no pk available) and the
+    Upset Tree Nodes (change the structure of the tree, doable but more
+    complex, maybe later) so we use this intermediate model to create all the
+    new objects separately while conserving the old ones to avoid downtime
+    '''
+    update_date = models.DateTimeField(auto_now_add=True)
+    ready = models.BooleanField(default=False)
+
+
 class Set(models.Model):
     original_id = models.CharField(max_length=1000)
     # (not primary key cause there's duplicates in the player database export)
@@ -160,6 +171,8 @@ class Set(models.Model):
     loser_score = models.IntegerField(null=True, blank=True)
     round_name = models.CharField(max_length=1000, null=True, blank=True)
     best_of = models.IntegerField(null=True, blank=True)
+    # batch update intermediate model
+    batch_update = models.ForeignKey(BatchUpdate, on_delete=models.CASCADE)
 
 
 class UpsetTreeNode(models.Model):
@@ -173,13 +186,20 @@ class UpsetTreeNode(models.Model):
     players, but in the case of a fixed target player it makes the processing
     simpler but mainly faster, for quick enduser results.
     '''
-    player = models.OneToOneField(
-        Player, on_delete=models.CASCADE, primary_key=True)
+    player = models.ForeignKey(Player, on_delete=models.CASCADE)
+    # Sets and TreeNodes will be deleted all together by deleting the
+    # associated BatchUpdate object. We use DO_NOTHING to avoid a deluge of
+    # useless DB request performing the successive cascade operations
     parent = models.ForeignKey(
-        'self', on_delete=models.CASCADE, null=True, blank=True)
+        'self', on_delete=models.DO_NOTHING, null=True, blank=True)
     upset = models.ForeignKey(
-        Set, on_delete=models.CASCADE, null=True, blank=True)
+        Set, on_delete=models.DO_NOTHING, null=True, blank=True)
     node_depth = models.IntegerField()
+    # batch update intermediate model
+    batch_update = models.ForeignKey(BatchUpdate, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ('player', 'batch_update',)
 
     def get_root_path(self):
         logger.info(self)
