@@ -34,7 +34,7 @@ class Player(models.Model):
 
     class Meta:
         indexes = [
-            models.Index(fields=['-played_sets_count']),
+            models.Index(fields=['tag', '-played_sets_count']),
         ]
 
     def update_main_character(self):
