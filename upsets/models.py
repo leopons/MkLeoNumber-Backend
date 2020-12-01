@@ -3,6 +3,7 @@ from main.settings import TWITTER_BEARER_TOKEN
 from django.contrib.postgres.fields import ArrayField
 from django.db.models import Q
 import requests
+from datetime import datetime
 # LOGGING
 import logging
 logger = logging.getLogger('data_processing')
@@ -34,7 +35,7 @@ class Player(models.Model):
 
     class Meta:
         indexes = [
-            models.Index(fields=['-played_sets_count']),
+            models.Index(fields=['tag', '-played_sets_count']),
         ]
 
     def update_main_character(self):
@@ -97,9 +98,26 @@ class TwitterTag(models.Model):
     tag = models.CharField(max_length=1000)
     player = models.ForeignKey(Player, on_delete=models.CASCADE)
     obsolete = models.BooleanField(default=False)
+    date_last_checked = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         unique_together = ('tag', 'player',)
+        indexes = [
+            models.Index(fields=['player']),
+        ]
+
+    def is_valid(self):
+        if self.obsolete:
+            return False
+        if self.date_last_checked:
+            secs = (datetime.now() -
+                    self.date_last_checked.replace(tzinfo=None)) \
+                .total_seconds()
+            # If already has been checked the last 24h
+            if secs < (60 * 60 * 24):
+                return True
+        # default case
+        return self.check_validity()
 
     def check_validity(self):
         # Make an API call to twitter to check the existence of the account
@@ -108,8 +126,10 @@ class TwitterTag(models.Model):
         headers = {'authorization': 'Bearer '+TWITTER_BEARER_TOKEN}
         r = requests.get(twitter_search+self.tag, headers=headers)
         if r.ok:
-            # If the account exists, we return True but do not store anything
-            # as we DO want to check again the next times
+            # If the account exists, we return True and store the date, as we
+            # want to remember that for a day only.
+            self.date_last_checked = datetime.now()
+            self.save()
             return True
         elif r.status_code == 404:
             # If the account does not exists we mark the tag as obsolete to
@@ -121,6 +141,17 @@ class TwitterTag(models.Model):
             # If we got an error which isn't a 404, we do not mark the tag
             # as obsolete as this may be a temporary error
             return False
+
+
+class BatchUpdate(models.Model):
+    '''
+    We can't make iterative updates for the Sets (no pk available) and the
+    Upset Tree Nodes (change the structure of the tree, doable but more
+    complex, maybe later) so we use this intermediate model to create all the
+    new objects separately while conserving the old ones to avoid downtime
+    '''
+    update_date = models.DateTimeField(auto_now_add=True)
+    ready = models.BooleanField(default=False)
 
 
 class Set(models.Model):
@@ -140,6 +171,8 @@ class Set(models.Model):
     loser_score = models.IntegerField(null=True, blank=True)
     round_name = models.CharField(max_length=1000, null=True, blank=True)
     best_of = models.IntegerField(null=True, blank=True)
+    # batch update intermediate model
+    batch_update = models.ForeignKey(BatchUpdate, on_delete=models.CASCADE)
 
 
 class UpsetTreeNode(models.Model):
@@ -153,13 +186,20 @@ class UpsetTreeNode(models.Model):
     players, but in the case of a fixed target player it makes the processing
     simpler but mainly faster, for quick enduser results.
     '''
-    player = models.OneToOneField(
-        Player, on_delete=models.CASCADE, primary_key=True)
+    player = models.ForeignKey(Player, on_delete=models.CASCADE)
+    # Sets and TreeNodes will be deleted all together by deleting the
+    # associated BatchUpdate object. We use DO_NOTHING to avoid a deluge of
+    # useless DB request performing the successive cascade operations
     parent = models.ForeignKey(
-        'self', on_delete=models.CASCADE, null=True, blank=True)
+        'self', on_delete=models.DO_NOTHING, null=True, blank=True)
     upset = models.ForeignKey(
-        Set, on_delete=models.CASCADE, null=True, blank=True)
+        Set, on_delete=models.DO_NOTHING, null=True, blank=True)
     node_depth = models.IntegerField()
+    # batch update intermediate model
+    batch_update = models.ForeignKey(BatchUpdate, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ('player', 'batch_update',)
 
     def get_root_path(self):
         logger.info(self)

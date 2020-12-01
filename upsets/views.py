@@ -1,4 +1,4 @@
-from upsets.models import UpsetTreeNode, Player, TwitterTag
+from upsets.models import UpsetTreeNode, Player, TwitterTag, BatchUpdate
 from upsets.serializers import UpsetTreeNodeSerializer, PlayerSerializer
 from django.http import Http404
 from django.db.models import BooleanField, Case, Value, When
@@ -6,6 +6,9 @@ from rest_framework.views import APIView
 from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from rest_framework.exceptions import ParseError
+
+from logging import getLogger
+logger = getLogger('data_processing')
 
 
 class UpsetPath(APIView):
@@ -17,7 +20,13 @@ class UpsetPath(APIView):
         try:
             player = Player.objects.get(id=id)
             try:
-                upset_node = UpsetTreeNode.objects.get(player=player)
+                batch_update = BatchUpdate.objects \
+                    .filter(ready=True) \
+                    .order_by('-update_date') \
+                    .first()
+                upset_node = UpsetTreeNode.objects \
+                    .filter(batch_update=batch_update) \
+                    .get(player=player)
             except UpsetTreeNode.DoesNotExist:
                 return Response(
                     {'player_tag': player.tag, 'path_exist': False})
@@ -80,7 +89,7 @@ class PlayerTwitterTag(APIView):
             twittertags_candidates = TwitterTag.objects.filter(
                 player=player, obsolete=False)
             for twittertag in twittertags_candidates:
-                valid = twittertag.check_validity()
+                valid = twittertag.is_valid()
                 if valid:
                     return Response(
                         {'player_id': player.id,
