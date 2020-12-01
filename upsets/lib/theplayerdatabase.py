@@ -154,7 +154,7 @@ class SqliteArchiveReader:
                         (game_winner_char, game_loser_char) = (
                             (gamedata['winner_char'].replace('ultimate/', '')),
                             (gamedata['loser_char'].replace('ultimate/', '')))
-                        if gamedata['winner_id'] == set.winner_id:
+                        if str(gamedata['winner_id']) == str(set.winner_id):
                             set_winner_char = game_winner_char
                             set_loser_char = game_loser_char
                         else:
@@ -183,7 +183,10 @@ class SqliteArchiveReader:
         # sets and update tree nodes)
         batch_update.ready = True
         batch_update.save()
+        logger.info(
+            "The new Sets and Tree data is ready, deleting the old data...")
         BatchUpdate.objects.exclude(id=batch_update.id).delete()
+        logger.info("Successfully deleted old Sets and Tree data.")
 
     def update_all_data(self):
         """Query the db file and update all the data in our db
