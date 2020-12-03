@@ -31,12 +31,56 @@ I'm accounting for all the Smash Ultimate sets on the Player Database, excepts f
 
 ## Endpoints
 
-The API isn't available in production yet.
+The API production endpoint is : https://smash-upset-distance.ew.r.appspot.com/
 
-There is only one endpoint for now : `/upsets/playerpath/<player_id>/`
+There's throttling protection but the ratio isn't really severe, please do not flood it uselessly.
+
+### Player Search
+
+`/upsets/players/search/?term=<search_term>`
+
+This gives a list of players whose tag matches the search term. On the front-end side, this is used for the player search autocomplete.
+
+The results are ordered this way:
+- First, players whose tag exactly matches the search term.
+- Second, players whose tag begins with the search term.
+- Finally, players whose tag contains the search term.
+- The second ordering dimension is by total number of recorded sets (decreasing).
+
+All matches are case insensitive and unaccentuated.
+The number of results is limited to 20.
+
+`/upsets/players/search/?term=calin`
+```json
+[
+    {
+        "id": "1693879",
+        "tag": "Calin",
+        "main_character": null,
+        "last_tournament": {
+            "name": "Smash in Class, SPS Super Smash Bros Fundraiser",
+            "start_date": "2020-03-07"
+        }
+    },
+    {
+        "id": "1554284",
+        "tag": "UnCalin",
+        "main_character": "mario",
+        "last_tournament": {
+            "name": "WANTED SAISON 4 - 🎂 3 Years Anniversary 🎂",
+            "start_date": "2020-10-10"
+        }
+    }
+]
+```
+
+### Player Path
+
+`/upsets/playerpath/<player_id>/`
 
 This gives the shortest win path between the player requested and MkLeo, as well as details about each upset : tournament, scores, etc. When there is multiple sets possible that do not increase the overall distance, I choose the most recent sets. For example this is my personal path on this day :
 
+`/upsets/playerpath/1554284/`
 ```json
 {
     "player_tag": "UnCalin",
@@ -122,6 +166,40 @@ This gives the shortest win path between the player requested and MkLeo, as well
             "upset": null
         }
     ]
+}
+```
+
+### Twitter Tag
+
+`/upsets/twittertag/player/<player_id>/`
+
+This gives a valid twitter tag for the given player.
+
+The source data sometimes present multiple twitter tags for a given player, and sometimes invalid ones.
+I do not want to check for the validity of tags when importing the data because:
+- Twitter api limit rates are pretty low, so it would take quite a long time to check for the whole DB.
+- If a player changes his twitter tag, I do not want to display an invalid twitter tag (which would mean a broken link) on my app.
+
+This is were this endpoint comes into play. I call it from the front end, player by player, after the loading of a path. The back end checks on the fly the validty of the tag candidates via the Twitter API, and returns the good one.
+The tag is then 'cached' (it won't need another Twitter API call) for 24 hours.
+
+I haven't embedded this data in the player path endpoint but made it a distinct endpoint so that the front calls could be asynchronous. Indeed, for long player paths, embedding the Twitter tags validity checks in the player path calculation could really delay the page loading.
+
+`/upsets/twittertag/player/1554284/`
+```json
+{
+    "player_id": "1554284",
+    "twitter_tag": "UnCalinSSB"
+}
+```
+
+If there is no valid twitter tag, the api just returns a null value.
+
+`/upsets/twittertag/player/1641669/`
+```json
+{
+    "player_id": "1641669",
+    "twitter_tag": null
 }
 ```
 
