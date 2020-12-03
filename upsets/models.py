@@ -200,6 +200,9 @@ class UpsetTreeNode(models.Model):
 
     class Meta:
         unique_together = ('player', 'batch_update',)
+        indexes = [
+            models.Index(fields=['batch_update', 'player']),
+        ]
 
     def get_root_path(self):
         logger.info(self)
