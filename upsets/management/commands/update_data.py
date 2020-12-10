@@ -1,5 +1,6 @@
 from django.core.management.base import BaseCommand
 from upsets.lib.theplayerdatabase import SqliteArchiveReader
+from upsets.lib.upsettree import UpsetTreeManager
 from utils.decorators import log_exceptions
 # LOGGING
 import logging
@@ -19,12 +20,13 @@ class Command(BaseCommand):
             '-o',
             type=str,
             help=('Type objects to update, mainly for test purposes. '
-                  + 'Possibles are players, tournaments, sets, or tree.'))
+                  + 'Possibles are players, tournaments, sets, or trees.'))
 
     @log_exceptions(logger)
     def handle(self, *args, **options):
         path = options['path']
         reader = SqliteArchiveReader(path)
+        tree_manager = UpsetTreeManager('222927')
         if options['object']:
             if options['object'] == 'players':
                 reader.update_players()
@@ -32,10 +34,11 @@ class Command(BaseCommand):
                 reader.update_tournaments()
             elif options['object'] == 'sets':
                 reader.update_sets()
-            elif options['object'] == 'tree':
-                reader.batch_update_tree()
+            elif options['object'] == 'trees':
+                tree_manager.update_all_trees()
             else:
                 logger.error('Unknown object type. Possibles are players, '
-                             + 'tournaments, sets, or tree.')
+                             + 'tournaments, sets, or trees.')
         else:
             reader.update_all_data()
+            tree_manager.update_all_trees()

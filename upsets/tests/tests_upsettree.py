@@ -56,11 +56,10 @@ class UpsetTree_GeneralTestCase(TestCase):
             set.id = str(id)
             id += 1
         Set.objects.bulk_create(sets_to_bulk_create)
-        batch_update = TreeContainer.objects.create()
-        self.manager = UpsetTreeManager('3', batch_update)
+        self.manager = UpsetTreeManager('3')
 
     def test_create_from_scratch(self):
-        self.manager.create_from_scratch()
+        self.manager.update_tree(offline_only=False)
         nodes = UpsetTreeNode.objects.all()
         # 5 nodes (player 6 never won)
         self.assertEqual(nodes.count(), 5)

@@ -177,6 +177,7 @@ class TreeContainer(models.Model):
     '''
     update_date = models.DateTimeField(auto_now_add=True)
     ready = models.BooleanField(default=False)
+    offline_only = models.BooleanField()
 
 
 class UpsetTreeNode(models.Model):
@@ -190,22 +191,22 @@ class UpsetTreeNode(models.Model):
     players, but in the case of a fixed target player it makes the processing
     simpler but mainly faster, for quick enduser results.
     '''
-    player = models.ForeignKey(Player, on_delete=models.CASCADE)
-    # Sets and TreeNodes will be deleted all together by deleting the
-    # associated TreeContainer object. We use DO_NOTHING to avoid a deluge of
+    player = models.ForeignKey(Player, on_delete=models.PROTECT)
+    # TreeNodes will be deleted all together by deleting the associated
+    # TreeContainer object. We use DO_NOTHING to avoid a deluge of
     # useless DB request performing the successive cascade operations
     parent = models.ForeignKey(
         'self', on_delete=models.DO_NOTHING, null=True, blank=True)
     upset = models.ForeignKey(
-        Set, on_delete=models.DO_NOTHING, null=True, blank=True)
+        Set, on_delete=models.PROTECT, null=True, blank=True)
     node_depth = models.IntegerField()
-    # batch update intermediate model
-    batch_update = models.ForeignKey(TreeContainer, on_delete=models.CASCADE)
+    # container object
+    tree_container = models.ForeignKey(TreeContainer, on_delete=models.CASCADE)
 
     class Meta:
-        unique_together = ('player', 'batch_update',)
+        unique_together = ('player', 'tree_container',)
         indexes = [
-            models.Index(fields=['batch_update', 'player']),
+            models.Index(fields=['tree_container', 'player']),
         ]
 
     def get_root_path(self):

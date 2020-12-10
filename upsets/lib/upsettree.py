@@ -1,4 +1,4 @@
-from upsets.models import Set, UpsetTreeNode
+from upsets.models import Set, UpsetTreeNode, TreeContainer
 from utils.decorators import time_it
 from django.db.models import Q, Prefetch
 # LOGGING
@@ -22,27 +22,28 @@ class UpsetTreeManager:
     ----------
     _root_player_id: str
         The id of the player to use as the target player
-    _batch_update: TreeContainer object
-        The TreeContainer object associated to the current update
 
     Methods
     -------
     create_from_scratch()
-        Create the upset tree from scratch for the given batch_update
+        Create the upset tree from scratch for the given tree_container
+    update_tree()
+        Update the upset tree using a container to assure zero downtime
+    update_all_trees()
+        Update both online and offline upset trees
     """
 
-    def __init__(self, root_player_id, batch_update):
+    def __init__(self, root_player_id):
         self._root_player_id = root_player_id
-        self._batch_update = batch_update
 
     @time_it(logger)
-    def create_from_scratch(self):
-        """Create the upset tree from scratch for the given batch_update
+    def create_from_scratch(self, tree_container):
+        """Create the upset tree from scratch for the given tree_container
         """
         root = UpsetTreeNode(
             player_id=self._root_player_id,
             node_depth=0,
-            batch_update=self._batch_update)
+            tree_container=tree_container)
         root.save()
 
         cont = True
@@ -50,11 +51,15 @@ class UpsetTreeManager:
         target_players_ids = [self._root_player_id]
         seen_players_ids = [self._root_player_id]
 
+        sets = Set.objects.all()
+        if tree_container.offline_only:
+            # The online/offline attribute doesn't exist for now
+            pass
+
         while cont:
             logger.info(
                 'Processing Upset Tree layer #%s...' % (current_depth+1))
-            upsets = Set.objects \
-                .all() \
+            upsets = sets \
                 .exclude(winner_id__in=seen_players_ids) \
                 .filter(loser_id__in=target_players_ids) \
                 .exclude(Q(winner_score=-1) | Q(loser_score=-1)) \
@@ -64,7 +69,7 @@ class UpsetTreeManager:
                 .prefetch_related(Prefetch(
                     'loser__upsettreenode_set',
                     queryset=UpsetTreeNode.objects.filter(
-                        batch_update_id=self._batch_update.id),
+                        tree_container_id=tree_container.id),
                     to_attr='matching_nodes'))
             # .distinct('col_name') works only on postgres and select the
             # first row given the order_by placed before (see django doc)
@@ -83,7 +88,7 @@ class UpsetTreeManager:
                         parent=upset.loser.matching_nodes[0],
                         upset=upset,
                         node_depth=current_depth,
-                        batch_update=self._batch_update)
+                        tree_container=tree_container)
                     to_bulk_create.append(elt)
                     players_ids.append(upset.winner_id)
 
@@ -98,3 +103,28 @@ class UpsetTreeManager:
                 logger.info(
                     'No players in layer #%s, the tree is now completed.'
                     % current_depth)
+
+    def update_tree(self, offline_only=False):
+        """Update the upset tree using a container to assure zero downtime
+        """
+        str_type = "Offline" if offline_only else "Online"
+        logger.info("Building new %s Upset Tree." % str_type)
+
+        container = TreeContainer.objects.create(offline_only=offline_only)
+        self.create_from_scratch(container)
+        # When all the data is built, switch the container to ready and
+        # delete the past container (the cascade will delete the related
+        # update tree nodes)
+        container.ready = True
+        container.save()
+        logger.info("The new Tree data is ready, deleting the old data...")
+        TreeContainer.objects.filter(offline_only=offline_only) \
+                             .exclude(id=container.id) \
+                             .delete()
+        logger.info("Successfully deleted old %s Tree data." % str_type)
+
+    def update_all_trees(self):
+        """Update both online and offline upset trees
+        """
+        self.update_tree(offline_only=False)
+        # self.update_tree(offline_only=True)

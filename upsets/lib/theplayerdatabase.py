@@ -1,9 +1,8 @@
 from datetime import datetime
 import ast
 import sqlite3
-from upsets.models import Tournament, Player, Set, TwitterTag, TreeContainer
+from upsets.models import Tournament, Player, Set, TwitterTag
 from utils.orm_operators import BulkBatchManager
-from upsets.lib.upsettree import UpsetTreeManager
 # LOGGING
 import logging
 logger = logging.getLogger('data_processing')
@@ -27,10 +26,8 @@ class SqliteArchiveReader:
         Query all rows in the player table and save them in our DB
     update_tournaments()
         Query all rows in the tournament_info table and save them in our DB
-    create_sets()
+    update_sets()
         Query all rows in the sets table and save them in our DB
-    batch_update_sets_tree ()
-        Update all sets and tree nodes using the batch update method
     update_all_data()
         Query the db file and update all the data in our db
     """
@@ -176,24 +173,9 @@ class SqliteArchiveReader:
              'loser_characters'])
         logger.info('Successfully updated sets from db file.')
 
-    def batch_update_tree(self):
-        batch_update = TreeContainer.objects.create()
-        upset_tree_manager = UpsetTreeManager('222927', batch_update)
-        upset_tree_manager.create_from_scratch()
-        # When all the data is built, switch the batch update to ready and
-        # delete the past batch update (the cascade will delete the related
-        # sets and update tree nodes)
-        batch_update.ready = True
-        batch_update.save()
-        logger.info(
-            "The new Sets and Tree data is ready, deleting the old data...")
-        TreeContainer.objects.exclude(id=batch_update.id).delete()
-        logger.info("Successfully deleted old Sets and Tree data.")
-
     def update_all_data(self):
         """Query the db file and update all the data in our db
         """
         self.update_tournaments()
         self.update_players()
         self.update_sets()
-        self.batch_update_tree()
