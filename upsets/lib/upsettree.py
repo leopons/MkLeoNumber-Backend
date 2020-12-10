@@ -55,7 +55,6 @@ class UpsetTreeManager:
                 'Processing Upset Tree layer #%s...' % (current_depth+1))
             upsets = Set.objects \
                 .all() \
-                .filter(batch_update_id=self._batch_update.id) \
                 .exclude(winner_id__in=seen_players_ids) \
                 .filter(loser_id__in=target_players_ids) \
                 .exclude(Q(winner_score=-1) | Q(loser_score=-1)) \

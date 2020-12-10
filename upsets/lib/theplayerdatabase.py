@@ -88,10 +88,9 @@ class SqliteArchiveReader:
             tournaments_generator, ['name', 'start_date'])
         logger.info('Successfully updated tournaments from db file.')
 
-    def create_sets(self, batch_update):
+    def update_sets(self):
         """
         Query all rows in the sets table and save them in our DB
-        attached to the given BatchUpdate object
         """
         cur = self._connection.cursor()
         # The sets table presents some player id values that are not in the
@@ -148,7 +147,6 @@ class SqliteArchiveReader:
                 set.best_of = row[8]
                 set.winner_characters = []
                 set.loser_characters = []
-                set.batch_update = batch_update
                 try:
                     for gamedata in ast.literal_eval(row[9]):
                         (game_winner_char, game_loser_char) = (
@@ -169,13 +167,17 @@ class SqliteArchiveReader:
                     logger.debug(ex)
                 yield set
 
-        batcher = BulkBatchManager(Set, logger=logger)
-        batcher.bulk_create(sets_generator(rows))
+        batcher = BulkBatchManager(
+            Set, ignore_conflicts=True, logger=logger)
+        batcher.bulk_update_or_create(
+            sets_generator(rows),
+            ['tournament_id', 'winner_id', 'loser_id', 'winner_score',
+             'loser_score', 'round_name', 'best_of', 'winner_characters',
+             'loser_characters'])
         logger.info('Successfully updated sets from db file.')
 
-    def batch_update_sets_tree(self):
+    def batch_update_tree(self):
         batch_update = BatchUpdate.objects.create()
-        self.create_sets(batch_update)
         upset_tree_manager = UpsetTreeManager('222927', batch_update)
         upset_tree_manager.create_from_scratch()
         # When all the data is built, switch the batch update to ready and
@@ -193,4 +195,5 @@ class SqliteArchiveReader:
         """
         self.update_tournaments()
         self.update_players()
-        self.batch_update_sets_tree()
+        self.update_sets()
+        self.batch_update_tree()

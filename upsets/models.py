@@ -170,8 +170,6 @@ class Set(models.Model):
     loser_score = models.IntegerField(null=True, blank=True)
     round_name = models.CharField(max_length=1000, null=True, blank=True)
     best_of = models.IntegerField(null=True, blank=True)
-    # batch update intermediate model
-    batch_update = models.ForeignKey(BatchUpdate, on_delete=models.CASCADE)
 
 
 class UpsetTreeNode(models.Model):

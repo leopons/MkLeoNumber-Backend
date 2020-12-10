@@ -1,6 +1,6 @@
 from datetime import datetime
 from django.test import TestCase
-from upsets.models import Player, Tournament, Set, BatchUpdate
+from upsets.models import Player, Tournament, Set
 
 
 class Models_GeneralTestCase(TestCase):
@@ -22,34 +22,30 @@ class Models_GeneralTestCase(TestCase):
                 start_date=datetime.strptime('01/01/19', '%d/%m/%y').date(),
                 name='old-tournament')
         ])
-        batch_update = BatchUpdate.objects.create()
         sets_to_bulk_create = [
             # players 2 & 3 haven't played in most recent tournament
             # player 1 mains joker, 4 mains mario, 5 we don't know
-            Set(tournament_id='1', winner_id='1', loser_id='4',
+            Set(id='1', tournament_id='1', winner_id='1', loser_id='4',
                 winner_characters=['joker'],
                 loser_characters=['mario', 'bowser']),
-            Set(tournament_id='1', winner_id='4', loser_id='5',
+            Set(id='2', tournament_id='1', winner_id='4', loser_id='5',
                 winner_characters=['mario'],
                 loser_characters=[]),
-            Set(tournament_id='1', winner_id='1', loser_id='5',
+            Set(id='3', tournament_id='1', winner_id='1', loser_id='5',
                 winner_characters=['luigi'],
                 loser_characters=[]),
             # player 3 & 4 haven't played in older tournament
             # player 2 mains peach
-            Set(tournament_id='2', winner_id='2', loser_id='1',
+            Set(id='4', tournament_id='2', winner_id='2', loser_id='1',
                 winner_characters=['mario', 'peach'],
                 loser_characters=['joker']),
-            Set(tournament_id='2', winner_id='5', loser_id='2',
+            Set(id='5', tournament_id='2', winner_id='5', loser_id='2',
                 winner_characters=[],
                 loser_characters=['peach']),
-            Set(tournament_id='2', winner_id='5', loser_id='1',
+            Set(id='6', tournament_id='2', winner_id='5', loser_id='1',
                 winner_characters=[],
                 loser_characters=['joker']),
         ]
-        for set in sets_to_bulk_create:
-            set.original_id = 'placeholder'
-            set.batch_update = batch_update
         Set.objects.bulk_create(sets_to_bulk_create)
 
     def test_update_main_character(self):

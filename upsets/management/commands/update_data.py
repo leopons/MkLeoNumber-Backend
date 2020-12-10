@@ -19,7 +19,7 @@ class Command(BaseCommand):
             '-o',
             type=str,
             help=('Type objects to update, mainly for test purposes. '
-                  + 'Possibles are players, tournaments, or sets.'))
+                  + 'Possibles are players, tournaments, sets, or tree.'))
 
     @log_exceptions(logger)
     def handle(self, *args, **options):
@@ -31,9 +31,11 @@ class Command(BaseCommand):
             elif options['object'] == 'tournaments':
                 reader.update_tournaments()
             elif options['object'] == 'sets':
-                reader.batch_update_sets_tree()
+                reader.update_sets()
+            elif options['object'] == 'tree':
+                reader.batch_update_tree()
             else:
                 logger.error('Unknown object type. Possibles are players, '
-                             + 'tournaments, or sets.')
+                             + 'tournaments, sets, or tree.')
         else:
             reader.update_all_data()
