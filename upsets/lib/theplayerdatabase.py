@@ -1,7 +1,7 @@
 from datetime import datetime
 import ast
 import sqlite3
-from upsets.models import Tournament, Player, Set, TwitterTag, BatchUpdate
+from upsets.models import Tournament, Player, Set, TwitterTag, TreeContainer
 from utils.orm_operators import BulkBatchManager
 from upsets.lib.upsettree import UpsetTreeManager
 # LOGGING
@@ -177,7 +177,7 @@ class SqliteArchiveReader:
         logger.info('Successfully updated sets from db file.')
 
     def batch_update_tree(self):
-        batch_update = BatchUpdate.objects.create()
+        batch_update = TreeContainer.objects.create()
         upset_tree_manager = UpsetTreeManager('222927', batch_update)
         upset_tree_manager.create_from_scratch()
         # When all the data is built, switch the batch update to ready and
@@ -187,7 +187,7 @@ class SqliteArchiveReader:
         batch_update.save()
         logger.info(
             "The new Sets and Tree data is ready, deleting the old data...")
-        BatchUpdate.objects.exclude(id=batch_update.id).delete()
+        TreeContainer.objects.exclude(id=batch_update.id).delete()
         logger.info("Successfully deleted old Sets and Tree data.")
 
     def update_all_data(self):

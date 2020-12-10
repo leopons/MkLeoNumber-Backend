@@ -22,8 +22,8 @@ class UpsetTreeManager:
     ----------
     _root_player_id: str
         The id of the player to use as the target player
-    _batch_update: BatchUpdate object
-        The BatchUpdate object associated to the current update
+    _batch_update: TreeContainer object
+        The TreeContainer object associated to the current update
 
     Methods
     -------

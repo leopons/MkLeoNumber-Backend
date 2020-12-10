@@ -1,4 +1,4 @@
-from upsets.models import UpsetTreeNode, Player, TwitterTag, BatchUpdate
+from upsets.models import UpsetTreeNode, Player, TwitterTag, TreeContainer
 from upsets.serializers import UpsetTreeNodeSerializer, PlayerSerializer
 from django.http import Http404
 from django.db.models import BooleanField, Case, Value, When
@@ -20,7 +20,7 @@ class UpsetPath(APIView):
         try:
             player = Player.objects.get(id=id)
             try:
-                batch_update = BatchUpdate.objects \
+                batch_update = TreeContainer.objects \
                     .filter(ready=True) \
                     .order_by('-update_date') \
                     .first()

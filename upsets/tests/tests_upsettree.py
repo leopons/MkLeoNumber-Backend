@@ -1,6 +1,6 @@
 from datetime import datetime
 from django.test import TestCase
-from upsets.models import Player, Tournament, Set, UpsetTreeNode, BatchUpdate
+from upsets.models import Player, Tournament, Set, UpsetTreeNode, TreeContainer
 from upsets.lib.upsettree import UpsetTreeManager
 
 
@@ -56,7 +56,7 @@ class UpsetTree_GeneralTestCase(TestCase):
             set.id = str(id)
             id += 1
         Set.objects.bulk_create(sets_to_bulk_create)
-        batch_update = BatchUpdate.objects.create()
+        batch_update = TreeContainer.objects.create()
         self.manager = UpsetTreeManager('3', batch_update)
 
     def test_create_from_scratch(self):

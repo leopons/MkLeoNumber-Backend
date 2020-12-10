@@ -143,17 +143,6 @@ class TwitterTag(models.Model):
             return False
 
 
-class BatchUpdate(models.Model):
-    '''
-    We can't make iterative updates for the Sets (no pk available) and the
-    Upset Tree Nodes (change the structure of the tree, doable but more
-    complex, maybe later) so we use this intermediate model to create all the
-    new objects separately while conserving the old ones to avoid downtime
-    '''
-    update_date = models.DateTimeField(auto_now_add=True)
-    ready = models.BooleanField(default=False)
-
-
 class Set(models.Model):
     id = models.CharField(max_length=1000, primary_key=True)
     tournament = models.ForeignKey(
@@ -178,6 +167,18 @@ class Set(models.Model):
         ]
 
 
+class TreeContainer(models.Model):
+    '''
+    This model allow us to manipulate different trees. It is usefull for 2
+    reasons : it simplifies the tree update (we don't have do do it
+    iteratively which could be complex, we just build another tree and delete
+    the old when the new is ready) and it allows to have 2 different trees,
+    one with online sets included, one where they're excluded.
+    '''
+    update_date = models.DateTimeField(auto_now_add=True)
+    ready = models.BooleanField(default=False)
+
+
 class UpsetTreeNode(models.Model):
     '''
     Given a target player, say MKLeo, we want to create a tree structure to get
@@ -191,7 +192,7 @@ class UpsetTreeNode(models.Model):
     '''
     player = models.ForeignKey(Player, on_delete=models.CASCADE)
     # Sets and TreeNodes will be deleted all together by deleting the
-    # associated BatchUpdate object. We use DO_NOTHING to avoid a deluge of
+    # associated TreeContainer object. We use DO_NOTHING to avoid a deluge of
     # useless DB request performing the successive cascade operations
     parent = models.ForeignKey(
         'self', on_delete=models.DO_NOTHING, null=True, blank=True)
@@ -199,7 +200,7 @@ class UpsetTreeNode(models.Model):
         Set, on_delete=models.DO_NOTHING, null=True, blank=True)
     node_depth = models.IntegerField()
     # batch update intermediate model
-    batch_update = models.ForeignKey(BatchUpdate, on_delete=models.CASCADE)
+    batch_update = models.ForeignKey(TreeContainer, on_delete=models.CASCADE)
 
     class Meta:
         unique_together = ('player', 'batch_update',)
