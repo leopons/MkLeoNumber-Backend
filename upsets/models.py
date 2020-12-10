@@ -18,6 +18,7 @@ class Tournament(models.Model):
     id = models.CharField(max_length=1000, primary_key=True)
     start_date = models.DateField(null=True, blank=True)
     name = models.CharField(max_length=1000)
+    online = models.BooleanField()
 
     class Meta:
         indexes = [
@@ -143,20 +144,8 @@ class TwitterTag(models.Model):
             return False
 
 
-class BatchUpdate(models.Model):
-    '''
-    We can't make iterative updates for the Sets (no pk available) and the
-    Upset Tree Nodes (change the structure of the tree, doable but more
-    complex, maybe later) so we use this intermediate model to create all the
-    new objects separately while conserving the old ones to avoid downtime
-    '''
-    update_date = models.DateTimeField(auto_now_add=True)
-    ready = models.BooleanField(default=False)
-
-
 class Set(models.Model):
-    original_id = models.CharField(max_length=1000)
-    # (not primary key cause there's duplicates in the player database export)
+    id = models.CharField(max_length=1000, primary_key=True)
     tournament = models.ForeignKey(
         Tournament, on_delete=models.CASCADE, related_name='sets')
     winner = models.ForeignKey(
@@ -171,8 +160,25 @@ class Set(models.Model):
     loser_score = models.IntegerField(null=True, blank=True)
     round_name = models.CharField(max_length=1000, null=True, blank=True)
     best_of = models.IntegerField(null=True, blank=True)
-    # batch update intermediate model
-    batch_update = models.ForeignKey(BatchUpdate, on_delete=models.CASCADE)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['winner']),
+            models.Index(fields=['loser']),
+        ]
+
+
+class TreeContainer(models.Model):
+    '''
+    This model allow us to manipulate different trees. It is usefull for 2
+    reasons : it simplifies the tree update (we don't have do do it
+    iteratively which could be complex, we just build another tree and delete
+    the old when the new is ready) and it allows to have 2 different trees,
+    one with online sets included, one where they're excluded.
+    '''
+    update_date = models.DateTimeField(auto_now_add=True)
+    ready = models.BooleanField(default=False)
+    offline_only = models.BooleanField()
 
 
 class UpsetTreeNode(models.Model):
@@ -186,22 +192,22 @@ class UpsetTreeNode(models.Model):
     players, but in the case of a fixed target player it makes the processing
     simpler but mainly faster, for quick enduser results.
     '''
-    player = models.ForeignKey(Player, on_delete=models.CASCADE)
-    # Sets and TreeNodes will be deleted all together by deleting the
-    # associated BatchUpdate object. We use DO_NOTHING to avoid a deluge of
+    player = models.ForeignKey(Player, on_delete=models.PROTECT)
+    # TreeNodes will be deleted all together by deleting the associated
+    # TreeContainer object. We use DO_NOTHING to avoid a deluge of
     # useless DB request performing the successive cascade operations
     parent = models.ForeignKey(
         'self', on_delete=models.DO_NOTHING, null=True, blank=True)
     upset = models.ForeignKey(
-        Set, on_delete=models.DO_NOTHING, null=True, blank=True)
+        Set, on_delete=models.PROTECT, null=True, blank=True)
     node_depth = models.IntegerField()
-    # batch update intermediate model
-    batch_update = models.ForeignKey(BatchUpdate, on_delete=models.CASCADE)
+    # container object
+    tree_container = models.ForeignKey(TreeContainer, on_delete=models.CASCADE)
 
     class Meta:
-        unique_together = ('player', 'batch_update',)
+        unique_together = ('player', 'tree_container',)
         indexes = [
-            models.Index(fields=['batch_update', 'player']),
+            models.Index(fields=['tree_container', 'player']),
         ]
 
     def get_root_path(self):
