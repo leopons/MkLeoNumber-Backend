@@ -171,6 +171,12 @@ class Set(models.Model):
     round_name = models.CharField(max_length=1000, null=True, blank=True)
     best_of = models.IntegerField(null=True, blank=True)
 
+    class Meta:
+        indexes = [
+            models.Index(fields=['winner']),
+            models.Index(fields=['loser']),
+        ]
+
 
 class UpsetTreeNode(models.Model):
     '''
