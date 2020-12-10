@@ -53,8 +53,7 @@ class UpsetTreeManager:
 
         sets = Set.objects.all()
         if tree_container.offline_only:
-            # The online/offline attribute doesn't exist for now
-            pass
+            sets = sets.exclude(tournament__online=True)
 
         while cont:
             logger.info(
@@ -127,4 +126,4 @@ class UpsetTreeManager:
         """Update both online and offline upset trees
         """
         self.update_tree(offline_only=False)
-        # self.update_tree(offline_only=True)
+        self.update_tree(offline_only=True)

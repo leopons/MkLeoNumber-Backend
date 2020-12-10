@@ -24,7 +24,12 @@ class UpsetTree_GeneralTestCase(TestCase):
                 id='2',
                 start_date=datetime.strptime('01/01/19', '%d/%m/%y').date(),
                 name='old-tournament',
-                online=False)
+                online=False),
+            Tournament(
+                id='3',
+                start_date=datetime.strptime('01/01/19', '%d/%m/%y').date(),
+                name='wifi-tournament',
+                online=True)
         ])
         sets_to_bulk_create = [
             # The best player lose once to 2 (2019) and twice to 1 (2019, 2020)
@@ -51,7 +56,9 @@ class UpsetTree_GeneralTestCase(TestCase):
             # Player 6 never won
             Set(tournament_id='1', winner_id='1', loser_id='6'),
             Set(tournament_id='1', winner_id='2', loser_id='6'),
-            Set(tournament_id='1', winner_id='3', loser_id='6')
+            Set(tournament_id='1', winner_id='3', loser_id='6'),
+            # Player 5 beat player the best player on wifi
+            Set(tournament_id='3', winner_id='5', loser_id='3')
         ]
         id = 1
         for set in sets_to_bulk_create:
@@ -61,18 +68,20 @@ class UpsetTree_GeneralTestCase(TestCase):
         self.manager = UpsetTreeManager('3')
 
     def test_create_from_scratch(self):
-        self.manager.update_tree(offline_only=False)
-        nodes = UpsetTreeNode.objects.all()
+        self.manager.update_all_trees()
+        # OFFLINE ONLY TREE
+        offline_nodes = UpsetTreeNode.objects.filter(
+            tree_container__offline_only=True)
         # 5 nodes (player 6 never won)
-        self.assertEqual(nodes.count(), 5)
+        self.assertEqual(offline_nodes.count(), 5)
         # player 3 is root
-        node3 = nodes.get(player_id='3')
+        node3 = offline_nodes.get(player_id='3')
         self.assertIsNone(node3.upset)
         self.assertIsNone(node3.parent)
         self.assertEqual(node3.node_depth, 0)
         # player 1 and 2 are level 1
-        node1 = nodes.get(player_id='1')
-        node2 = nodes.get(player_id='2')
+        node1 = offline_nodes.get(player_id='1')
+        node2 = offline_nodes.get(player_id='2')
         self.assertEqual(node1.parent, node3)
         self.assertEqual(node2.parent, node3)
         self.assertEqual(node1.node_depth, 1)
@@ -81,8 +90,8 @@ class UpsetTree_GeneralTestCase(TestCase):
         self.assertEqual(node1.upset.tournament_id, '1')
         self.assertEqual(node2.upset.tournament_id, '2')
         # player 4 and 5 are level 2
-        node4 = nodes.get(player_id='4')
-        node5 = nodes.get(player_id='5')
+        node4 = offline_nodes.get(player_id='4')
+        node5 = offline_nodes.get(player_id='5')
         self.assertEqual(node4.node_depth, 2)
         self.assertEqual(node5.node_depth, 2)
         # player 4 most recent upset is against player 1 in 2020
@@ -91,3 +100,16 @@ class UpsetTree_GeneralTestCase(TestCase):
         # player 5 most recent upset is against player 2 in 2020
         self.assertEqual(node5.parent, node2)
         self.assertEqual(node5.upset.tournament_id, '1')
+        # OFFLINE & ONLINE TREE
+        online_nodes = UpsetTreeNode.objects.filter(
+            tree_container__offline_only=False)
+        # 5 nodes (player 6 never won)
+        self.assertEqual(online_nodes.count(), 5)
+        # player 3 is root
+        node3_online = online_nodes.get(player_id='3')
+        self.assertIsNone(node3_online.upset)
+        self.assertIsNone(node3_online.parent)
+        self.assertEqual(node3_online.node_depth, 0)
+        # player 5 is level 1
+        node5_online = online_nodes.get(player_id='5')
+        self.assertEqual(node5_online.parent, node3_online)
