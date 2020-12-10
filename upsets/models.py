@@ -155,8 +155,7 @@ class BatchUpdate(models.Model):
 
 
 class Set(models.Model):
-    original_id = models.CharField(max_length=1000)
-    # (not primary key cause there's duplicates in the player database export)
+    id = models.CharField(max_length=1000, primary_key=True)
     tournament = models.ForeignKey(
         Tournament, on_delete=models.CASCADE, related_name='sets')
     winner = models.ForeignKey(

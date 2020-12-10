@@ -127,7 +127,7 @@ class SqliteArchiveReader:
 
         def sets_generator(data):
             for row in data:
-                set = Set(original_id=row[0], tournament_id=row[1])
+                set = Set(id=row[0], tournament_id=row[1])
                 if row[2] == row[3]:
                     # winner is player 1
                     set.winner_id = row[3]
