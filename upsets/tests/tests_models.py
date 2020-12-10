@@ -16,11 +16,13 @@ class Models_GeneralTestCase(TestCase):
             Tournament(
                 id='1',
                 start_date=datetime.strptime('01/01/20', '%d/%m/%y').date(),
-                name='recent-tournament'),
+                name='recent-tournament',
+                online=False),
             Tournament(
                 id='2',
                 start_date=datetime.strptime('01/01/19', '%d/%m/%y').date(),
-                name='old-tournament')
+                name='old-tournament',
+                online=False)
         ])
         sets_to_bulk_create = [
             # players 2 & 3 haven't played in most recent tournament

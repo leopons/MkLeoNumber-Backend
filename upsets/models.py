@@ -18,6 +18,7 @@ class Tournament(models.Model):
     id = models.CharField(max_length=1000, primary_key=True)
     start_date = models.DateField(null=True, blank=True)
     name = models.CharField(max_length=1000)
+    online = models.BooleanField()
 
     class Meta:
         indexes = [

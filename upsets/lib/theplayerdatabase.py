@@ -68,7 +68,8 @@ class SqliteArchiveReader:
         """Query all rows in the tournament_info table and save them in our DB
         """
         cur = self._connection.cursor()
-        cur.execute("SELECT key, cleaned_name, start FROM tournament_info")
+        cur.execute(
+            "SELECT key, cleaned_name, start, online FROM tournament_info")
         rows = cur.fetchall()
         logger.info('Successfully fetched tournament data from db file, '
                     + 'handling tournaments updates...')
@@ -76,13 +77,14 @@ class SqliteArchiveReader:
         tournaments_generator = (Tournament(
             id=row[0],
             name=row[1],
-            start_date=datetime.fromtimestamp(row[2]).date()
+            start_date=datetime.fromtimestamp(row[2]).date(),
+            online=(True if row[3] == 1 else False)
         ) for row in rows)
 
         batcher = BulkBatchManager(
             Tournament, ignore_conflicts=True, logger=logger)
         batcher.bulk_update_or_create(
-            tournaments_generator, ['name', 'start_date'])
+            tournaments_generator, ['name', 'start_date', 'online'])
         logger.info('Successfully updated tournaments from db file.')
 
     def update_sets(self):
