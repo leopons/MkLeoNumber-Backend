@@ -59,6 +59,7 @@ class UpsetTreeManager:
                 .exclude(winner_id__in=seen_players_ids) \
                 .filter(loser_id__in=target_players_ids) \
                 .exclude(Q(winner_score=-1) | Q(loser_score=-1)) \
+                .exclude(Q(winner_score=0) & Q(loser_score=0)) \
                 .order_by('winner_id', '-tournament__start_date') \
                 .distinct('winner_id') \
                 .prefetch_related(Prefetch(
