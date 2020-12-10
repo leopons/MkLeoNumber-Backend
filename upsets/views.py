@@ -1,11 +1,12 @@
-from upsets.models import UpsetTreeNode, Player, TwitterTag, BatchUpdate
+from upsets.models import UpsetTreeNode, Player, TwitterTag, TreeContainer
 from upsets.serializers import UpsetTreeNodeSerializer, PlayerSerializer
-from django.http import Http404
+from django.http import Http404, HttpResponseBadRequest
 from django.db.models import BooleanField, Case, Value, When
 from rest_framework.views import APIView
 from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from rest_framework.exceptions import ParseError
+import json
 
 from logging import getLogger
 logger = getLogger('data_processing')
@@ -17,19 +18,37 @@ class UpsetPath(APIView):
     """
 
     def get(self, request, id, format=None):
+        # GET parameters are always strings.
+        offline_only_str = request.GET.get('offline_only', 'False')
+        if offline_only_str == 'False':
+            offline_only = False
+        elif offline_only_str == 'True':
+            offline_only = True
+        else:
+            # Use the same format as DRF errors
+            return HttpResponseBadRequest(
+                json.dumps({
+                    'detail': 'GET parameter offline_only should be either ' +
+                              'not defined, True, or False.'
+                    }),
+                content_type="application/json")
+        # offline_only correctly defined
         try:
             player = Player.objects.get(id=id)
             try:
-                batch_update = BatchUpdate.objects \
+                container = TreeContainer.objects \
                     .filter(ready=True) \
+                    .filter(offline_only=offline_only) \
                     .order_by('-update_date') \
                     .first()
                 upset_node = UpsetTreeNode.objects \
-                    .filter(batch_update=batch_update) \
+                    .filter(tree_container=container) \
                     .get(player=player)
             except UpsetTreeNode.DoesNotExist:
                 return Response(
-                    {'player_tag': player.tag, 'path_exist': False})
+                    {'player_tag': player.tag,
+                     'offline_only': offline_only,
+                     'path_exist': False})
         except Player.DoesNotExist:
             raise Http404
 
@@ -37,6 +56,7 @@ class UpsetPath(APIView):
         serializer = UpsetTreeNodeSerializer(upset_root_path, many=True)
         return Response(
             {'player_tag': player.tag,
+             'offline_only': offline_only,
              'path_exist': True,
              'path': serializer.data})
 

@@ -6,7 +6,7 @@ class TournamentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Tournament
-        fields = ['name', 'start_date']
+        fields = ['name', 'start_date', 'online']
 
 
 class LightPlayerSerializer(serializers.ModelSerializer):

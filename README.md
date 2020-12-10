@@ -84,66 +84,111 @@ This gives the shortest win path between the player requested and MkLeo, as well
 ```json
 {
     "player_tag": "UnCalin",
+    "offline_only": false,
     "path_exist": true,
     "path": [
         {
             "node_depth": 5,
             "upset": {
                 "tournament": {
-                    "name": "Show me your mask ! #2",
-                    "start_date": "2020-09-21"
+                    "name": "Show me your mask ! #3",
+                    "start_date": "2020-10-05",
+                    "online": false
                 },
-                "winner": "UnCalin",
-                "loser": "Ukiyo",
+                "winner": {
+                    "id": "1554284",
+                    "tag": "UnCalin",
+                    "main_character": null
+                },
+                "loser": {
+                    "id": "993270",
+                    "tag": "Zenobia",
+                    "main_character": null
+                },
                 "winner_score": 2,
                 "loser_score": 1,
                 "round_name": "Losers Round 2",
-                "best_of": 3
+                "best_of": 3,
+                "winner_characters": [],
+                "loser_characters": []
             }
         },
         {
             "node_depth": 4,
             "upset": {
                 "tournament": {
-                    "name": "Cycom Weekly S2 #3",
-                    "start_date": "2019-11-08"
+                    "name": "WANTED SAISON 3 - Chap 3 : Worlds of Wanted 1vs1 (main event)",
+                    "start_date": "2019-11-09",
+                    "online": false
                 },
-                "winner": "Ukiyo",
-                "loser": "Amiin",
+                "winner": {
+                    "id": "993270",
+                    "tag": "Zenobia",
+                    "main_character": null
+                },
+                "loser": {
+                    "id": "813046",
+                    "tag": "Jawkz",
+                    "main_character": null
+                },
                 "winner_score": 2,
                 "loser_score": 1,
-                "round_name": "Losers Round 2",
-                "best_of": 3
+                "round_name": "Winners Round 1",
+                "best_of": 3,
+                "winner_characters": [],
+                "loser_characters": []
             }
         },
         {
             "node_depth": 3,
             "upset": {
                 "tournament": {
-                    "name": "Show me your mask ! #2",
-                    "start_date": "2020-09-21"
+                    "name": "WANTED Saison 3 - Chap 7 : Kirby c'est Top Tier",
+                    "start_date": "2020-02-22",
+                    "online": false
                 },
-                "winner": "Amiin",
-                "loser": "Tag",
+                "winner": {
+                    "id": "813046",
+                    "tag": "Jawkz",
+                    "main_character": null
+                },
+                "loser": {
+                    "id": "173362",
+                    "tag": "Agito",
+                    "main_character": null
+                },
                 "winner_score": 2,
-                "loser_score": 0,
-                "round_name": "Losers Round 5",
-                "best_of": 3
+                "loser_score": 1,
+                "round_name": "Winners Round 3",
+                "best_of": 3,
+                "winner_characters": [],
+                "loser_characters": []
             }
         },
         {
             "node_depth": 2,
             "upset": {
                 "tournament": {
-                    "name": "Ultimate WANTED #1 Side Event #2 : Squad Battle / Smash en Bande",
-                    "start_date": "2018-12-28"
+                    "name": "WANTED saison 2 Chapitre 8 : La moutarde lilloise The lost Maps",
+                    "start_date": "2019-05-11",
+                    "online": false
                 },
-                "winner": "Tag",
-                "loser": "Glutonny",
+                "winner": {
+                    "id": "173362",
+                    "tag": "Agito",
+                    "main_character": null
+                },
+                "loser": {
+                    "id": "6122",
+                    "tag": "Glutonny",
+                    "main_character": null
+                },
                 "winner_score": 2,
-                "loser_score": 1,
-                "round_name": "Winners Round 4",
-                "best_of": 3
+                "loser_score": 0,
+                "round_name": "Winners Quarter-Final",
+                "best_of": 3,
+                "winner_characters": [],
+                "loser_characters": []
             }
         },
         {
@@ -151,23 +196,37 @@ This gives the shortest win path between the player requested and MkLeo, as well
             "upset": {
                 "tournament": {
                     "name": "2GG: Kickoff - Kongo Saga",
-                    "start_date": "2019-12-07"
+                    "start_date": "2019-12-07",
+                    "online": false
                 },
-                "winner": "Glutonny",
-                "loser": "MkLeo",
+                "winner": {
+                    "id": "6122",
+                    "tag": "Glutonny",
+                    "main_character": null
+                },
+                "loser": {
+                    "id": "222927",
+                    "tag": "MkLeo",
+                    "main_character": null
+                },
                 "winner_score": 3,
                 "loser_score": 0,
                 "round_name": "Grand Final",
-                "best_of": 3
+                "best_of": 3,
+                "winner_characters": [
+                    "wario"
+                ],
+                "loser_characters": [
+                    "joker"
+                ]
             }
-        },
-        {
-            "node_depth": 0,
-            "upset": null
         }
     ]
 }
 ```
+
+To get the path excluding online tournaments, just add an `offline_only` GET parameter:
+`/upsets/playerpath/<player_id>/?offline_only=True`
 
 ### Twitter Tag
 
@@ -183,7 +242,7 @@ I do not want to check for the validity of tags when importing the data because:
 This is were this endpoint comes into play. I call it from the front end, player by player, after the loading of a path. The back end checks on the fly the validty of the tag candidates via the Twitter API, and returns the good one.
 The tag is then 'cached' (it won't need another Twitter API call) for 24 hours.
 
-I haven't embedded this data in the player path endpoint but made it a distinct endpoint so that the front calls could be asynchronous. Indeed, for long player paths, embedding the Twitter tags validity checks in the player path calculation could really delay the page loading.
+I haven't embedded this data in the player path endpoint but made it a distinct endpoint so that the front calls could be asynchronous. Indeed, for long player paths, embedding the tags checks in the player path calculation could really delay the page loading.
 
 `/upsets/twittertag/player/1554284/`
 ```json
@@ -205,7 +264,9 @@ If there is no valid twitter tag, the api just returns a null value.
 
 ## Code Structure
 
-I'm using Django.
+I'm using Django, with a PostgreSQL DB.
+
+The PostgreSQL choice is important : `ArrayField` is used on some models and it needs PostgreSQL, as well as the `unaccent` string search, which is used in the Player Search view.
 
 Most of the data preparation and calculation logic can be found in `upsets/lib`.
 Otherwise, this is a pretty standard Django codebase : model based structure with DRF handling the serialization, with a `requirements.txt` file for the dependencies, and some tests to run with `python manage.py test`.
@@ -213,9 +274,36 @@ Otherwise, this is a pretty standard Django codebase : model based structure wit
 There is a lot of DB queries optimisation going on. To ease the task, I've set up DB queries console logging when `DB_LOGS=True`. The log messages for these lines are limited to 120 characters to avoid console flooding. You can change that with `DB_LOGS_MAX_CHARS`, for example :
 `DB_LOGS=True DB_LOGS_MAX_CHARS=200 python manage.py process_players`
 
+## Setup
+
+Steps to make the project work locally.
+
+### Standard Django Setup
+
+- Clone the repo
+- Install the python dependencies which are in `requirements.txt`
+- Setup your DB instance (remember that it is important that you use PostgreSQL).
+- Setup your env variables, they should specify the classic `DEBUG` and `SECRET_KEY`, as well as a `LOCAL_DATABASE_URL` to access the DB and which should be formatted like this: `postgres://USER:PASSWORD@HOST/DBNAME` (I'm using `dj_database_url` to parse this.)
+- Run the django migrations: `python manage.py migrate`
+
+To run the local server : `python manage.py runserver`
+
+### Data Setup
+
+To initiate the data, download the last DB export for ultimate on [the player database Github repo](https://github.com/smashdata/ThePlayerDatabase).
+Then simply run `python manage.py update_data path/to/the/db/file.db`. It could take a while depending on your local specs (like an hour), but there is some clear logging so you should be able to check it's progressing correctly.
+
+If you need to update only some objects for dev purposes, you can : `python manage.py update_data file.db -o tournaments`.
+
+You should also run `python manage.py process_players` which will update some info about the players (like their main character, or their last tournament played) based on the data you just loaded.
+
+### Twitter API
+
+If you want the Twitter Tag endpoint to work, you should also specify a valid `TWITTER_BEARER_TOKEN` in your env so that the app can use the Twitter API to check the tags validity.
+
 ## Production Environnement
 
-For production I'm using Google App Engine Standard environnement with a Cloud SQL Postgres instance.
+For production I'm using Google App Engine Standard environnement with a Cloud SQL PostgreSQL instance.
 
 ### Run Django Commands
 
