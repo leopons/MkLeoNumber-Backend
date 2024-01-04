@@ -1,11 +1,11 @@
-# Smash Upset Distance - Backend
+# MkLeo Number Engine - Backend
 
 ## Introduction
 
 This repo objective is to provide an API backend to a front web app available [here](https://upsets.ssbapps.com/).
-The front code repo is [also available](https://github.com/leopons/smash-upset-distance__frontend).
+The front code repo is [also available](https://github.com/leopons/MkLeoNumber-Frontend).
 
-The web app goal is to allow any Super Smash Bros Ultimate competitive player to calculate what I call his 'upset distance' to the best player in the world at this day, MkLeo.
+The web app goal is to allow any Super Smash Bros Ultimate competitive player to calculate what I initially called his 'upset distance' to the best player in the world at this day, MkLeo. It is now better known as the MkLeo number.
 
 ### The Upset Distance
 
