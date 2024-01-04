@@ -120,28 +120,34 @@ class TwitterTag(models.Model):
         # default case
         return self.check_validity()
 
+
     def check_validity(self):
-        # Make an API call to twitter to check the existence of the account
-        twitter_search = \
-                'https://api.twitter.com/1.1/users/show.json?screen_name='
-        headers = {'authorization': 'Bearer '+TWITTER_BEARER_TOKEN}
-        r = requests.get(twitter_search+self.tag, headers=headers)
-        if r.ok:
-            # If the account exists, we return True and store the date, as we
-            # want to remember that for a day only.
-            self.date_last_checked = datetime.now()
-            self.save()
-            return True
-        elif r.status_code == 404:
-            # If the account does not exists we mark the tag as obsolete to
-            # save some time in the future and do not check again
-            self.obsolete = True
-            self.save()
-            return False
-        else:
-            # If we got an error which isn't a 404, we do not mark the tag
-            # as obsolete as this may be a temporary error
-            return False
+        # Twitter API is not available as it was anymore, we just return True
+        return True
+
+
+    # def check_validity(self):
+    #     # Make an API call to twitter to check the existence of the account
+    #     twitter_search = \
+    #             'https://api.twitter.com/1.1/users/show.json?screen_name='
+    #     headers = {'authorization': 'Bearer '+TWITTER_BEARER_TOKEN}
+    #     r = requests.get(twitter_search+self.tag, headers=headers)
+    #     if r.ok:
+    #         # If the account exists, we return True and store the date, as we
+    #         # want to remember that for a day only.
+    #         self.date_last_checked = datetime.now()
+    #         self.save()
+    #         return True
+    #     elif r.status_code == 404:
+    #         # If the account does not exists we mark the tag as obsolete to
+    #         # save some time in the future and do not check again
+    #         self.obsolete = True
+    #         self.save()
+    #         return False
+    #     else:
+    #         # If we got an error which isn't a 404, we do not mark the tag
+    #         # as obsolete as this may be a temporary error
+    #         return False
 
 
 class Set(models.Model):
