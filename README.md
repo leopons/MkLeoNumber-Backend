@@ -13,6 +13,7 @@ What do I mean by that ?
 Given all the sets that have been played in registered tournaments for this game, your upset distance to MkLeo is the minimal number of wins you need to go from you to him.
 
 Which means :
+
 - All the people that have won at least one time against MkLeo on a registered tournament have a distance of 1 from him. For exemple Glutonny has won against MkLeo at least one time, thus he has a distance of 1.
 - All the people that have won at least one time against someone who has beaten MkLeo, have a distance of 2. Said differently, if you have beaten someone who is at a distance of 1 from MkLeo, you are yourself at a distance of 2. For exemple Raflow has won one time against Glutonny, thus he has a distance of 2.
 - This goes on as many times as needed.
@@ -21,7 +22,7 @@ Which means :
 
 The app objective is to calculate this distance and the shortest win path associated, see the endpoint part for some examples.
 
-*Disclaimer* : I am very aware that "this means nothing" : a player true level can't be determined by this distance, as it is heavily influenced by one time out-performances, or one may even say luck. But this is fun.
+_Disclaimer_ : I am very aware that "this means nothing" : a player true level can't be determined by this distance, as it is heavily influenced by one time out-performances, or one may even say luck. But this is fun.
 
 ### Data
 
@@ -42,6 +43,7 @@ There's throttling protection but the ratio isn't really severe, please do not f
 This gives a list of players whose tag matches the search term. On the front-end side, this is used for the player search autocomplete.
 
 The results are ordered this way:
+
 - First, players whose tag exactly matches the search term.
 - Second, players whose tag begins with the search term.
 - Finally, players whose tag contains the search term.
@@ -51,26 +53,27 @@ All matches are case insensitive and unaccentuated.
 The number of results is limited to 20.
 
 `/upsets/players/search/?term=calin`
+
 ```json
 [
-    {
-        "id": "1693879",
-        "tag": "Calin",
-        "main_character": null,
-        "last_tournament": {
-            "name": "Smash in Class, SPS Super Smash Bros Fundraiser",
-            "start_date": "2020-03-07"
-        }
-    },
-    {
-        "id": "1554284",
-        "tag": "UnCalin",
-        "main_character": "mario",
-        "last_tournament": {
-            "name": "WANTED SAISON 4 - 🎂 3 Years Anniversary 🎂",
-            "start_date": "2020-10-10"
-        }
+  {
+    "id": "1693879",
+    "tag": "Calin",
+    "main_character": null,
+    "last_tournament": {
+      "name": "Smash in Class, SPS Super Smash Bros Fundraiser",
+      "start_date": "2020-03-07"
     }
+  },
+  {
+    "id": "1554284",
+    "tag": "UnCalin",
+    "main_character": "mario",
+    "last_tournament": {
+      "name": "WANTED SAISON 4 - 🎂 3 Years Anniversary 🎂",
+      "start_date": "2020-10-10"
+    }
+  }
 ]
 ```
 
@@ -81,147 +84,144 @@ The number of results is limited to 20.
 This gives the shortest win path between the player requested and MkLeo, as well as details about each upset : tournament, scores, etc. When there is multiple sets possible that do not increase the overall distance, I choose the most recent sets. For example this is my personal path on this day :
 
 `/upsets/playerpath/1554284/`
+
 ```json
 {
-    "player_tag": "UnCalin",
-    "offline_only": false,
-    "path_exist": true,
-    "path": [
-        {
-            "node_depth": 5,
-            "upset": {
-                "tournament": {
-                    "name": "Show me your mask ! #3",
-                    "start_date": "2020-10-05",
-                    "online": false
-                },
-                "winner": {
-                    "id": "1554284",
-                    "tag": "UnCalin",
-                    "main_character": null
-                },
-                "loser": {
-                    "id": "993270",
-                    "tag": "Zenobia",
-                    "main_character": null
-                },
-                "winner_score": 2,
-                "loser_score": 1,
-                "round_name": "Losers Round 2",
-                "best_of": 3,
-                "winner_characters": [],
-                "loser_characters": []
-            }
+  "player_tag": "UnCalin",
+  "offline_only": false,
+  "path_exist": true,
+  "path": [
+    {
+      "node_depth": 5,
+      "upset": {
+        "tournament": {
+          "name": "Show me your mask ! #3",
+          "start_date": "2020-10-05",
+          "online": false
         },
-        {
-            "node_depth": 4,
-            "upset": {
-                "tournament": {
-                    "name": "WANTED SAISON 3 - Chap 3 : Worlds of Wanted 1vs1 (main event)",
-                    "start_date": "2019-11-09",
-                    "online": false
-                },
-                "winner": {
-                    "id": "993270",
-                    "tag": "Zenobia",
-                    "main_character": null
-                },
-                "loser": {
-                    "id": "813046",
-                    "tag": "Jawkz",
-                    "main_character": null
-                },
-                "winner_score": 2,
-                "loser_score": 1,
-                "round_name": "Winners Round 1",
-                "best_of": 3,
-                "winner_characters": [],
-                "loser_characters": []
-            }
+        "winner": {
+          "id": "1554284",
+          "tag": "UnCalin",
+          "main_character": null
         },
-        {
-            "node_depth": 3,
-            "upset": {
-                "tournament": {
-                    "name": "WANTED Saison 3 - Chap 7 : Kirby c'est Top Tier",
-                    "start_date": "2020-02-22",
-                    "online": false
-                },
-                "winner": {
-                    "id": "813046",
-                    "tag": "Jawkz",
-                    "main_character": null
-                },
-                "loser": {
-                    "id": "173362",
-                    "tag": "Agito",
-                    "main_character": null
-                },
-                "winner_score": 2,
-                "loser_score": 1,
-                "round_name": "Winners Round 3",
-                "best_of": 3,
-                "winner_characters": [],
-                "loser_characters": []
-            }
+        "loser": {
+          "id": "993270",
+          "tag": "Zenobia",
+          "main_character": null
         },
-        {
-            "node_depth": 2,
-            "upset": {
-                "tournament": {
-                    "name": "WANTED saison 2 Chapitre 8 : La moutarde lilloise The lost Maps",
-                    "start_date": "2019-05-11",
-                    "online": false
-                },
-                "winner": {
-                    "id": "173362",
-                    "tag": "Agito",
-                    "main_character": null
-                },
-                "loser": {
-                    "id": "6122",
-                    "tag": "Glutonny",
-                    "main_character": null
-                },
-                "winner_score": 2,
-                "loser_score": 0,
-                "round_name": "Winners Quarter-Final",
-                "best_of": 3,
-                "winner_characters": [],
-                "loser_characters": []
-            }
+        "winner_score": 2,
+        "loser_score": 1,
+        "round_name": "Losers Round 2",
+        "best_of": 3,
+        "winner_characters": [],
+        "loser_characters": []
+      }
+    },
+    {
+      "node_depth": 4,
+      "upset": {
+        "tournament": {
+          "name": "WANTED SAISON 3 - Chap 3 : Worlds of Wanted 1vs1 (main event)",
+          "start_date": "2019-11-09",
+          "online": false
         },
-        {
-            "node_depth": 1,
-            "upset": {
-                "tournament": {
-                    "name": "2GG: Kickoff - Kongo Saga",
-                    "start_date": "2019-12-07",
-                    "online": false
-                },
-                "winner": {
-                    "id": "6122",
-                    "tag": "Glutonny",
-                    "main_character": null
-                },
-                "loser": {
-                    "id": "222927",
-                    "tag": "MkLeo",
-                    "main_character": null
-                },
-                "winner_score": 3,
-                "loser_score": 0,
-                "round_name": "Grand Final",
-                "best_of": 3,
-                "winner_characters": [
-                    "wario"
-                ],
-                "loser_characters": [
-                    "joker"
-                ]
-            }
-        }
-    ]
+        "winner": {
+          "id": "993270",
+          "tag": "Zenobia",
+          "main_character": null
+        },
+        "loser": {
+          "id": "813046",
+          "tag": "Jawkz",
+          "main_character": null
+        },
+        "winner_score": 2,
+        "loser_score": 1,
+        "round_name": "Winners Round 1",
+        "best_of": 3,
+        "winner_characters": [],
+        "loser_characters": []
+      }
+    },
+    {
+      "node_depth": 3,
+      "upset": {
+        "tournament": {
+          "name": "WANTED Saison 3 - Chap 7 : Kirby c'est Top Tier",
+          "start_date": "2020-02-22",
+          "online": false
+        },
+        "winner": {
+          "id": "813046",
+          "tag": "Jawkz",
+          "main_character": null
+        },
+        "loser": {
+          "id": "173362",
+          "tag": "Agito",
+          "main_character": null
+        },
+        "winner_score": 2,
+        "loser_score": 1,
+        "round_name": "Winners Round 3",
+        "best_of": 3,
+        "winner_characters": [],
+        "loser_characters": []
+      }
+    },
+    {
+      "node_depth": 2,
+      "upset": {
+        "tournament": {
+          "name": "WANTED saison 2 Chapitre 8 : La moutarde lilloise The lost Maps",
+          "start_date": "2019-05-11",
+          "online": false
+        },
+        "winner": {
+          "id": "173362",
+          "tag": "Agito",
+          "main_character": null
+        },
+        "loser": {
+          "id": "6122",
+          "tag": "Glutonny",
+          "main_character": null
+        },
+        "winner_score": 2,
+        "loser_score": 0,
+        "round_name": "Winners Quarter-Final",
+        "best_of": 3,
+        "winner_characters": [],
+        "loser_characters": []
+      }
+    },
+    {
+      "node_depth": 1,
+      "upset": {
+        "tournament": {
+          "name": "2GG: Kickoff - Kongo Saga",
+          "start_date": "2019-12-07",
+          "online": false
+        },
+        "winner": {
+          "id": "6122",
+          "tag": "Glutonny",
+          "main_character": null
+        },
+        "loser": {
+          "id": "222927",
+          "tag": "MkLeo",
+          "main_character": null
+        },
+        "winner_score": 3,
+        "loser_score": 0,
+        "round_name": "Grand Final",
+        "best_of": 3,
+        "winner_characters": ["wario"],
+        "loser_characters": ["joker"]
+      }
+    }
+  ]
 }
 ```
 
@@ -236,6 +236,7 @@ This gives a valid twitter tag for the given player.
 
 The source data sometimes present multiple twitter tags for a given player, and sometimes invalid ones.
 I do not want to check for the validity of tags when importing the data because:
+
 - Twitter api limit rates are pretty low, so it would take quite a long time to check for the whole DB.
 - If a player changes his twitter tag, I do not want to display an invalid twitter tag (which would mean a broken link) on my app.
 
@@ -245,20 +246,22 @@ The tag is then 'cached' (it won't need another Twitter API call) for 24 hours.
 I haven't embedded this data in the player path endpoint but made it a distinct endpoint so that the front calls could be asynchronous. Indeed, for long player paths, embedding the tags checks in the player path calculation could really delay the page loading.
 
 `/upsets/twittertag/player/1554284/`
+
 ```json
 {
-    "player_id": "1554284",
-    "twitter_tag": "UnCalinSSB"
+  "player_id": "1554284",
+  "twitter_tag": "UnCalinSSB"
 }
 ```
 
 If there is no valid twitter tag, the api just returns a null value.
 
 `/upsets/twittertag/player/1641669/`
+
 ```json
 {
-    "player_id": "1641669",
-    "twitter_tag": null
+  "player_id": "1641669",
+  "twitter_tag": null
 }
 ```
 
@@ -291,7 +294,7 @@ To run the local server : `python manage.py runserver`
 ### Data Setup
 
 To initiate the data, download the last DB export for ultimate on [the player database Github repo](https://github.com/smashdata/ThePlayerDatabase).
-Then simply run `python manage.py update_data path/to/the/db/file.db`. It could take a while depending on your local specs (like an hour), but there is some clear logging so you should be able to check it's progressing correctly.
+Then simply run `python manage.py update_data path/to/the/db/file.db`. It could take a while depending on your local specs (like an hour), but there is some clear logging so you should be able to check it's progressing correctly. By default, it will only backfill the last 6 months of data. If you need a whole backfill, pass the `--full` or `-f` option.
 
 If you need to update only some objects for dev purposes, you can : `python manage.py update_data file.db -o tournaments`.
 
@@ -325,13 +328,13 @@ Your `gae_env_variables.yaml` file should be placed at the root of the project w
 
 ```yaml
 env_variables:
-  DEBUG: 'False'
-  SECRET_KEY: 'your-secret-key'
-  DB_PROD_CONNECTION_NAME: 'project-name:region-name:instance-name'
-  DB_PROD_DATABASE: 'database-instance-name'
-  DB_PROD_USERNAME: 'database-user-name'
-  DB_PROD_PASSWORD: 'database-user-password'
-  TWITTER_BEARER_TOKEN: 'twitter-api-bearer-token'
+  DEBUG: "False"
+  SECRET_KEY: "your-secret-key"
+  DB_PROD_CONNECTION_NAME: "project-name:region-name:instance-name"
+  DB_PROD_DATABASE: "database-instance-name"
+  DB_PROD_USERNAME: "database-user-name"
+  DB_PROD_PASSWORD: "database-user-password"
+  TWITTER_BEARER_TOKEN: "twitter-api-bearer-token"
 ```
 
 ### Deployment

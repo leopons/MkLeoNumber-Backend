@@ -21,11 +21,16 @@ class Command(BaseCommand):
             type=str,
             help=('Type objects to update, mainly for test purposes. '
                   + 'Possibles are players, tournaments, sets, or trees.'))
+        parser.add_argument(
+            '--full',
+            '-f',
+            action='store_true',
+            help=('Force a full backfill of the data (instead of just 6 months)'))
 
     @log_exceptions(logger)
     def handle(self, *args, **options):
         path = options['path']
-        reader = SqliteArchiveReader(path)
+        reader = SqliteArchiveReader(path, full_backfill=options['full'])
         tree_manager = UpsetTreeManager('222927')
         if options['object']:
             if options['object'] == 'players':

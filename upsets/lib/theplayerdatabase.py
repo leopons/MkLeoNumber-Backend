@@ -32,10 +32,15 @@ class SqliteArchiveReader:
         Query the db file and update all the data in our db
     """
 
-    def __init__(self, db_file):
+    def __init__(self, db_file, full_backfill=False):
         # Setup connection object
         conn = sqlite3.connect(db_file)
         self._connection = conn
+        if full_backfill:
+            self.cutoff_timestamp = 0
+        else:
+            # 6 months ago
+            self.cutoff_timestamp = datetime.now().timestamp() - 15778463
 
     def update_players(self):
         """Query all rows in the player table and save them in our DB
@@ -69,7 +74,11 @@ class SqliteArchiveReader:
         """
         cur = self._connection.cursor()
         cur.execute(
-            "SELECT key, cleaned_name, start, online FROM tournament_info")
+            f"""
+            SELECT key, cleaned_name, start, online
+            FROM tournament_info
+            WHERE start >= {self.cutoff_timestamp}
+            """)
         rows = cur.fetchall()
         logger.info('Successfully fetched tournament data from db file, '
                     + 'handling tournaments updates...')
@@ -97,7 +106,7 @@ class SqliteArchiveReader:
         # operations. To handle this we inner join the sets table with
         # the player table when requesting the sqlite file, which takes a
         # little more time but solves the integrity problem upstream
-        cur.execute("""
+        cur.execute(f"""
             SELECT
                 sets.key,
                 sets.tournament_key,
@@ -114,9 +123,12 @@ class SqliteArchiveReader:
             ON sets.p1_id = p1.player_id
             INNER JOIN players as p2
             ON sets.p2_id = p2.player_id
-            WHERE key IS NOT NULL
+            INNER JOIN tournament_info as t
+            ON sets.tournament_key = t.key
+            WHERE sets.key IS NOT NULL
                 AND sets.tournament_key IS NOT NULL
                 AND sets.winner_id IS NOT NULL
+                AND t.start >= {self.cutoff_timestamp}
             """)
 
         rows = cur.fetchall()
